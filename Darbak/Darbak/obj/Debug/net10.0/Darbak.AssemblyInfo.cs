@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Darbak")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+753fdf048870f225ad8b6f2caedda2bcd441e1fa")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d6c4727695421971ed1fb305efc8198e21ab74ef")]
 [assembly: System.Reflection.AssemblyProductAttribute("Darbak")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Darbak")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
