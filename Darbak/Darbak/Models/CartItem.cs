@@ -1,4 +1,6 @@
-﻿namespace Darbak.Models
+﻿using Darbak.Models.Enums;
+
+namespace Darbak.Models
 {
     public class CartItem
     {

@@ -1,6 +1,6 @@
 ﻿namespace Darbak.Models.Enums
 {
-    public class OrderStatus
+    public enum OrderStatus
     {
         Processing,
         Completed,

@@ -1,6 +1,6 @@
 ﻿namespace Darbak.Models.Enums
 {
-    public class ApprovalStatus
+    public enum ApprovalStatus
     {
         Pending,
         Approved,

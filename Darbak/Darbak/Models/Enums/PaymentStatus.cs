@@ -1,6 +1,6 @@
 ﻿namespace Darbak.Models.Enums
 {
-    public class PaymentStatus
+    public enum PaymentStatus
     {
         Pending,
         Paid,
