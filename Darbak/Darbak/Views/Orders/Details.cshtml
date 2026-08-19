@@ -1,0 +1,111 @@
+﻿@model Darbak.Models.Order
+
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+@if (TempData["OrderSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["OrderSuccess"]
+    </div>
+}
+
+<h1>Order #@Model.Id</h1>
+
+<div class="card mb-4">
+
+    <div class="card-body">
+
+        <p>
+            <strong>Order Date:</strong>
+
+            @Model.OrderDate
+            .ToLocalTime()
+            .ToString("dd/MM/yyyy HH:mm")
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            @Model.Status
+        </p>
+
+        <p>
+            <strong>Payment Status:</strong>
+            @Model.PaymentStatus
+        </p>
+
+        <hr />
+
+        <p>
+            <strong>Shipping Address:</strong>
+            @Model.ShippingAddress
+        </p>
+
+        <p>
+            <strong>City:</strong>
+            @Model.City
+        </p>
+
+        <p>
+            <strong>Phone:</strong>
+            @Model.PhoneNumber
+        </p>
+
+    </div>
+
+</div>
+
+<h4>Products</h4>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Unit Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (var item in Model.OrderItems)
+        {
+            <tr>
+
+                <td>
+                    @item.Product.Name
+                </td>
+
+                <td>
+                    @item.UnitPrice.ToString("0.00")
+                </td>
+
+                <td>
+                    @item.Quantity
+                </td>
+
+                <td>
+                    @((item.UnitPrice *
+                        item.Quantity)
+                        .ToString("0.00"))
+                </td>
+
+            </tr>
+        }
+
+    </tbody>
+
+</table>
+
+<h4>
+    Total:
+    @Model.TotalAmount.ToString("0.00")
+</h4>
+
+<a asp-action="Index"
+   class="btn btn-secondary">
+    Back to My Orders
+</a>

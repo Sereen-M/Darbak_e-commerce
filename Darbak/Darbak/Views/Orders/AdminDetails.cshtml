@@ -1,0 +1,210 @@
+﻿@using Darbak.Models.Enums
+@model Darbak.Models.Order
+
+@{
+    ViewData["Title"] = "Manage Order";
+}
+
+@if (TempData["AdminOrderSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["AdminOrderSuccess"]
+    </div>
+}
+
+@if (TempData["OrderError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["OrderError"]
+    </div>
+}
+
+<h1>Manage Order #@Model.Id</h1>
+
+<div class="card mb-4">
+
+    <div class="card-body">
+
+        <h5>Customer</h5>
+
+        <p>
+            <strong>Name:</strong>
+
+            @if (!string.IsNullOrEmpty(
+                Model.User.FullName))
+            {
+                @Model.User.FullName
+            }
+            else
+            {
+                <span>-</span>
+            }
+        </p>
+
+        <p>
+            <strong>Email:</strong>
+            @Model.User.Email
+        </p>
+
+        <hr />
+
+        <h5>Shipping Information</h5>
+
+        <p>
+            <strong>Address:</strong>
+            @Model.ShippingAddress
+        </p>
+
+        <p>
+            <strong>City:</strong>
+            @Model.City
+        </p>
+
+        <p>
+            <strong>Phone:</strong>
+            @Model.PhoneNumber
+        </p>
+
+        <p>
+            <strong>Order Date:</strong>
+
+            @Model.OrderDate
+            .ToLocalTime()
+            .ToString("dd/MM/yyyy HH:mm")
+        </p>
+
+    </div>
+
+</div>
+
+<div class="row mb-4">
+
+    <div class="col-md-6">
+
+        <div class="card">
+
+            <div class="card-body">
+
+                <h5>Order Status</h5>
+
+                <form asp-action="UpdateStatus"
+                      method="post">
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <div class="mb-3">
+
+                        <select asp-for="Status"
+                                asp-items="Html.GetEnumSelectList<OrderStatus>()"
+                                class="form-select">
+                        </select>
+
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Update Order Status
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="card">
+
+            <div class="card-body">
+
+                <h5>Payment Status</h5>
+
+                <form asp-action="UpdatePaymentStatus"
+                      method="post">
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <div class="mb-3">
+
+                        <select asp-for="PaymentStatus"
+                                asp-items="Html.GetEnumSelectList<PaymentStatus>()"
+                                class="form-select">
+                        </select>
+
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Update Payment Status
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<h4>Order Items</h4>
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Unit Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (var item in Model.OrderItems)
+        {
+            <tr>
+
+                <td>
+                    @item.Product.Name
+                </td>
+
+                <td>
+                    @item.UnitPrice.ToString("0.00")
+                </td>
+
+                <td>
+                    @item.Quantity
+                </td>
+
+                <td>
+                    @((item.UnitPrice *
+                        item.Quantity)
+                        .ToString("0.00"))
+                </td>
+
+            </tr>
+        }
+
+    </tbody>
+
+</table>
+
+<h4>
+    Order Total:
+    @Model.TotalAmount.ToString("0.00")
+</h4>
+
+<a asp-action="AdminIndex"
+   class="btn btn-secondary">
+    Back to Orders
+</a>

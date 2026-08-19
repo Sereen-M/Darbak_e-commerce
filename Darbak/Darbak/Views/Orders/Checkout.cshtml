@@ -1,0 +1,124 @@
+﻿@model Darbak.ViewModels.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h1>Checkout</h1>
+
+<form asp-action="Checkout"
+      method="post">
+
+    <div asp-validation-summary="ModelOnly"
+         class="text-danger mb-3">
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-7">
+
+            <h4>Shipping Information</h4>
+
+            <div class="mb-3">
+                <label asp-for="ShippingAddress"
+                       class="form-label">
+                </label>
+
+                <input asp-for="ShippingAddress"
+                       class="form-control" />
+
+                <span asp-validation-for="ShippingAddress"
+                      class="text-danger">
+                </span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="City"
+                       class="form-label">
+                </label>
+
+                <input asp-for="City"
+                       class="form-control" />
+
+                <span asp-validation-for="City"
+                      class="text-danger">
+                </span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="PhoneNumber"
+                       class="form-label">
+                </label>
+
+                <input asp-for="PhoneNumber"
+                       class="form-control" />
+
+                <span asp-validation-for="PhoneNumber"
+                      class="text-danger">
+                </span>
+            </div>
+
+        </div>
+
+        <div class="col-md-5">
+
+            <h4>Order Summary</h4>
+
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <tr>
+                            <td>
+                                @item.ProductName
+                            </td>
+
+                            <td>
+                                @item.Quantity
+                            </td>
+
+                            <td>
+                                @item.Total.ToString("0.00")
+                            </td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+            <h5>
+                Total:
+                @Model.TotalAmount.ToString("0.00")
+            </h5>
+
+            <button type="submit"
+                    class="btn btn-primary mt-3">
+                Place Order
+            </button>
+
+            <a asp-controller="Cart"
+               asp-action="Index"
+               class="btn btn-secondary mt-3">
+                Back to Cart
+            </a>
+
+        </div>
+
+    </div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
