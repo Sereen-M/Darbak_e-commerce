@@ -1,0 +1,43 @@
+﻿@model IEnumerable<Darbak.Models.Category>
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<h1>Categories</h1>
+
+<a asp-action="Create" class="btn btn-primary mb-3">
+    Add Category
+</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var category in Model)
+        {
+            <tr>
+                <td>@category.Id</td>
+                <td>@category.Name</td>
+                <td>
+                    <a asp-action="Edit"
+                       asp-route-id="@category.Id"
+                       class="btn btn-warning">
+                        Edit
+                    </a>
+                    <a asp-action="Delete"
+                       asp-route-id="@category.Id"
+                       class="btn btn-danger">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
