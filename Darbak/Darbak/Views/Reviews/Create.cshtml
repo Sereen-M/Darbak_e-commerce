@@ -1,0 +1,57 @@
+﻿@model Darbak.Models.Review
+
+@{
+    ViewData["Title"] = "Add Review";
+}
+
+<h2>Add Review</h2>
+
+@if (ViewBag.ProductName != null)
+{
+    <h4>@ViewBag.ProductName</h4>
+}
+
+<form asp-action="Create" method="post">
+
+    <input asp-for="ProductId"
+           type="hidden"
+           value="@ViewBag.ProductId" />
+
+    <div class="mb-3">
+        <label asp-for="Rating" class="form-label"></label>
+
+        <select asp-for="Rating" class="form-select">
+            <option value="">Select Rating</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+
+        <span asp-validation-for="Rating"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Comment" class="form-label"></label>
+
+        <textarea asp-for="Comment"
+                  class="form-control"
+                  rows="4"></textarea>
+
+        <span asp-validation-for="Comment"
+              class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Submit Review
+    </button>
+
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
