@@ -1,0 +1,92 @@
+﻿@model Darbak.Models.Product
+
+@{
+    ViewData["Title"] = "Product Images";
+}
+
+<h1>Images - @Model.Name</h1>
+
+<a asp-action="Create"
+   asp-route-productId="@Model.Id"
+   class="btn btn-primary mb-3">
+    Add Image
+</a>
+
+@if (!Model.Images.Any())
+{
+    <div class="alert alert-info">
+        No images have been added to this product yet.
+    </div>
+}
+else
+{
+    <div class="row">
+
+        @foreach (var image in Model.Images)
+        {
+            <div class="col-md-3 mb-3">
+
+                <div class="card">
+
+                    <img src="@image.ImageUrl"
+                         class="card-img-top"
+                         alt="@Model.Name" />
+
+                    <div class="card-body">
+
+                        @if (image.IsMain)
+                        {
+                            <span class="badge bg-success mb-2">
+                                Main Image
+                            </span>
+                        }
+
+                        @if (!image.IsMain)
+                        {
+                            <form asp-action="SetMain"
+                                  method="post"
+                                  class="d-inline">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@image.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-success btn-sm">
+                                    Set as Main
+                                </button>
+
+                            </form>
+                        }
+
+                        <form asp-action="Delete"
+                              method="post"
+                              class="d-inline">
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@image.Id" />
+
+                            <button type="submit"
+                                    class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Delete this image?');">
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+}
+
+<a asp-controller="Products"
+   asp-action="Index"
+   class="btn btn-secondary">
+    Back to Products
+</a>

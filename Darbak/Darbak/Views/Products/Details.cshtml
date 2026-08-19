@@ -50,7 +50,22 @@ else
 
 <br />
 
-@if (User.Identity != null && User.Identity.IsAuthenticated)
+@if (TempData["WishlistSuccess"] != null)
+{
+    <div class="alert alert-success mt-3">
+        @TempData["WishlistSuccess"]
+    </div>
+}
+
+@if (TempData["WishlistInfo"] != null)
+{
+    <div class="alert alert-info mt-3">
+        @TempData["WishlistInfo"]
+    </div>
+}
+
+@if (User.Identity != null &&
+     User.Identity.IsAuthenticated)
 {
     <a asp-controller="Reviews"
        asp-action="Create"
@@ -58,8 +73,27 @@ else
        class="btn btn-success">
         Add Review
     </a>
+
+    <form asp-controller="Wishlist"
+          asp-action="Add"
+          method="post"
+          class="d-inline">
+
+        <input type="hidden"
+               name="productId"
+               value="@Model.Id" />
+
+        <button type="submit"
+                class="btn btn-outline-danger">
+            Add to Wishlist
+        </button>
+
+    </form>
 }
 else
 {
-    <p>Login to add a review.</p>
+    <p>
+        Login to add a review or save products
+        to your wishlist.
+    </p>
 }
