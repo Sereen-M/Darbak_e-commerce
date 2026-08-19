@@ -1,0 +1,54 @@
+﻿@model Darbak.Models.Testimonial
+
+@{
+    ViewData["Title"] = "Add Testimonial";
+}
+
+<h1 class="mb-4">Add Testimonial</h1>
+
+<div class="row">
+    <div class="col-md-8">
+
+        <form asp-action="Create"
+              method="post">
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3">
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Content"
+                       class="form-label">
+                    Your Testimonial
+                </label>
+
+                <textarea asp-for="Content"
+                          class="form-control"
+                          rows="6"
+                          placeholder="Write your testimonial..."></textarea>
+
+                <span asp-validation-for="Content"
+                      class="text-danger">
+                </span>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-primary">
+                Submit
+            </button>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
