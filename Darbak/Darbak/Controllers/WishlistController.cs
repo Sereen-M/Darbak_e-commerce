@@ -18,13 +18,14 @@ namespace Darbak.Controllers
             _context = context;
         }
 
-     
+        // =========================
+        // INDEX
+        // =========================
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var userId =
-                User.FindFirstValue(
-                    ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
 
             if (userId == null)
             {
@@ -33,6 +34,7 @@ namespace Darbak.Controllers
 
             var wishlistItems =
                 await _context.WishlistItems
+                    .AsNoTracking()
                     .Where(w =>
                         w.UserId == userId)
                     .Include(w =>
@@ -46,30 +48,41 @@ namespace Darbak.Controllers
             return View(wishlistItems);
         }
 
-      
+        // =========================
+        // ADD
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(
             int productId)
         {
-            var userId =
-                User.FindFirstValue(
-                    ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
 
             if (userId == null)
             {
                 return Challenge();
             }
 
-            var productExists =
+            var product =
                 await _context.Products
-                    .AnyAsync(p =>
-                        p.Id == productId &&
-                        p.IsActive);
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p =>
+                        p.Id == productId);
 
-            if (!productExists)
+            if (product == null)
             {
                 return NotFound();
+            }
+
+            if (!product.IsActive)
+            {
+                TempData["WishlistError"] =
+                    "This product is no longer available.";
+
+                return RedirectToAction(
+                    "Index",
+                    "Wishlist");
             }
 
             var alreadyExists =
@@ -78,28 +91,32 @@ namespace Darbak.Controllers
                         w.UserId == userId &&
                         w.ProductId == productId);
 
-            if (!alreadyExists)
-            {
-                var wishlistItem =
-                    new WishlistItem
-                    {
-                        UserId = userId,
-                        ProductId = productId
-                    };
-
-                _context.WishlistItems.Add(
-                    wishlistItem);
-
-                await _context.SaveChangesAsync();
-
-                TempData["WishlistSuccess"] =
-                    "Product added to wishlist.";
-            }
-            else
+            if (alreadyExists)
             {
                 TempData["WishlistInfo"] =
-                    "Product is already in your wishlist.";
+                    "This product is already in your wishlist.";
+
+                return RedirectToAction(
+                    "Details",
+                    "Products",
+                    new { id = productId });
             }
+
+            var wishlistItem =
+                new WishlistItem
+                {
+                    UserId = userId,
+                    ProductId = productId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+            _context.WishlistItems.Add(
+                wishlistItem);
+
+            await _context.SaveChangesAsync();
+
+            TempData["WishlistSuccess"] =
+                "Product added to wishlist successfully.";
 
             return RedirectToAction(
                 "Details",
@@ -107,15 +124,16 @@ namespace Darbak.Controllers
                 new { id = productId });
         }
 
-      
+        // =========================
+        // REMOVE
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Remove(
             int id)
         {
-            var userId =
-                User.FindFirstValue(
-                    ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
 
             if (userId == null)
             {
@@ -130,7 +148,11 @@ namespace Darbak.Controllers
 
             if (wishlistItem == null)
             {
-                return NotFound();
+                TempData["WishlistError"] =
+                    "Wishlist item could not be found.";
+
+                return RedirectToAction(
+                    nameof(Index));
             }
 
             _context.WishlistItems.Remove(

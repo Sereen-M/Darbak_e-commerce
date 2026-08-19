@@ -6,56 +6,125 @@
 
 <h1>Products</h1>
 
-<a asp-action="Create" class="btn btn-primary mb-3">
+@if (TempData["ProductSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["ProductSuccess"]
+    </div>
+}
+
+@if (TempData["ProductError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ProductError"]
+    </div>
+}
+
+<a asp-action="Create"
+   class="btn btn-primary mb-3">
     Add Product
 </a>
 
-<table class="table table-bordered">
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No products have been added yet.
+    </div>
+}
+else
+{
+    <table class="table table-bordered">
 
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Name</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Category</th>
-            <th>Active</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+        <thead>
 
-    <tbody>
-
-        @foreach (var product in Model)
-        {
             <tr>
-                <td>@product.Id</td>
-                <td>@product.Name</td>
-                <td>@product.Price</td>
-                <td>@product.StockQuantity</td>
-                <td>@product.Category.Name</td>
-                <td>@product.IsActive</td>
-
-                <td>
-                    <a asp-action="Edit"
-                       asp-route-id="@product.Id"
-                       class="btn btn-warning">
-                        Edit
-                    </a>
-
-                    <a asp-action="Delete"
-                       asp-route-id="@product.Id"
-                       class="btn btn-danger">
-                        Delete
-                    </a>
-                    <a asp-action="Details"
-                       asp-route-id="@product.Id"
-                       class="btn btn-info">
-                        Details
-                    </a>
-                </td>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
-        }
 
-    </tbody>
-</table>
+        </thead>
+
+        <tbody>
+
+            @foreach (var product in Model)
+            {
+                <tr>
+
+                    <td>
+                        @product.Id
+                    </td>
+
+                    <td>
+                        @product.Name
+                    </td>
+
+                    <td>
+                        @product.Price.ToString("0.00")
+                    </td>
+
+                    <td>
+                        @product.StockQuantity
+                    </td>
+
+                    <td>
+                        @product.Category.Name
+                    </td>
+
+                    <td>
+
+                        @if (product.IsActive)
+                        {
+                            <span class="badge bg-success">
+                                Active
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                Inactive
+                            </span>
+                        }
+
+                    </td>
+
+                    <td>
+
+                        <a asp-action="Edit"
+                           asp-route-id="@product.Id"
+                           class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@product.Id"
+                           class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+
+                        <a asp-action="Details"
+                           asp-route-id="@product.Id"
+                           class="btn btn-info btn-sm">
+                            Details
+                        </a>
+
+                        <a asp-controller="ProductImages"
+                           asp-action="Index"
+                           asp-route-productId="@product.Id"
+                           class="btn btn-secondary btn-sm">
+                            Images
+                        </a>
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+}

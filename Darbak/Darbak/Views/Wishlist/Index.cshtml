@@ -13,16 +13,30 @@
     </div>
 }
 
+@if (TempData["WishlistInfo"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["WishlistInfo"]
+    </div>
+}
+
+@if (TempData["WishlistError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["WishlistError"]
+    </div>
+}
+
 @if (!Model.Any())
 {
     <div class="alert alert-info">
         Your wishlist is empty.
     </div>
 
-    <a asp-controller="Products"
+    <a asp-controller="Home"
        asp-action="Index"
-       class="btn btn-primary">
-        Browse Products
+       class="btn btn-secondary">
+        Back to Home
     </a>
 }
 else
@@ -33,8 +47,8 @@ else
         {
             var mainImage =
                 item.Product.Images
-                    .FirstOrDefault(i => i.IsMain)
-                ?? item.Product.Images
+                    .OrderByDescending(i => i.IsMain)
+                    .ThenBy(i => i.Id)
                     .FirstOrDefault();
 
             <div class="col-md-4 mb-4">
@@ -45,7 +59,19 @@ else
                     {
                         <img src="@mainImage.ImageUrl"
                              class="card-img-top"
-                             alt="@item.Product.Name" />
+                             alt="@item.Product.Name"
+                             style="height: 220px;
+                        object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="d-flex
+                            align-items-center
+                            justify-content-center
+                            bg-light text-muted"
+                             style="height: 220px;">
+                            No Image
+                        </div>
                     }
 
                     <div class="card-body">
@@ -55,29 +81,36 @@ else
                         </h5>
 
                         <p class="card-text">
-                            Price:
+                            <strong>Price:</strong>
                             @item.Product.Price.ToString("0.00")
                         </p>
 
                         @if (!item.Product.IsActive)
                         {
-                            <p class="text-danger">
-                                Currently unavailable
-                            </p>
+                            <div class="alert alert-warning py-2">
+                                This product is currently unavailable.
+                            </div>
                         }
                         else if (item.Product.StockQuantity <= 0)
                         {
-                            <p class="text-danger">
-                                Out of Stock
-                            </p>
+                            <div class="alert alert-warning py-2">
+                                This product is currently out of stock.
+                            </div>
                         }
 
-                        <a asp-controller="Products"
-                           asp-action="Details"
-                           asp-route-id="@item.ProductId"
-                           class="btn btn-primary">
-                            View Product
-                        </a>
+                    </div>
+
+                    <div class="card-footer bg-transparent">
+
+                        @if (item.Product.IsActive)
+                        {
+                            <a asp-controller="Products"
+                               asp-action="Details"
+                               asp-route-id="@item.ProductId"
+                               class="btn btn-primary btn-sm">
+                                View Product
+                            </a>
+                        }
 
                         <form asp-action="Remove"
                               method="post"
@@ -88,7 +121,7 @@ else
                                    value="@item.Id" />
 
                             <button type="submit"
-                                    class="btn btn-danger"
+                                    class="btn btn-danger btn-sm"
                                     onclick="return confirm('Remove this product from your wishlist?');">
                                 Remove
                             </button>

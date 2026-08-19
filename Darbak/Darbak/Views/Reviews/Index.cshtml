@@ -6,89 +6,139 @@
 
 <h2>Reviews</h2>
 
-<table class="table table-bordered">
+@if (TempData["ReviewAdminSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["ReviewAdminSuccess"]
+    </div>
+}
 
-    <thead>
-        <tr>
-            <th>Product</th>
-            <th>User</th>
-            <th>Rating</th>
-            <th>Comment</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No reviews have been submitted yet.
+    </div>
+}
+else
+{
+    <table class="table table-bordered">
 
-    <tbody>
+        <thead>
 
-        @foreach (var review in Model)
-        {
             <tr>
-                <td>
-                    @review.Product.Name
-                </td>
-
-                <td>
-                    @review.User.Email
-                </td>
-
-                <td>
-                    @review.Rating / 5
-                </td>
-
-                <td>
-                    @review.Comment
-                </td>
-
-                <td>
-                    @review.Status
-                </td>
-
-                <td>
-                    @review.CreatedAt.ToString("yyyy-MM-dd")
-                </td>
-                <td>
-                    @if (review.Status == Darbak.Models.Enums.ApprovalStatus.Pending)
-                    {
-                        <div class="d-flex gap-2">
-
-                            <form asp-action="Approve"
-                                  method="post">
-
-                                <input type="hidden"
-                                       name="id"
-                                       value="@review.Id" />
-
-                                <button type="submit"
-                                        class="btn btn-success btn-sm">
-                                    Approve
-                                </button>
-                            </form>
-
-                            <form asp-action="Reject"
-                                  method="post">
-
-                                <input type="hidden"
-                                       name="id"
-                                       value="@review.Id" />
-
-                                <button type="submit"
-                                        class="btn btn-danger btn-sm">
-                                    Reject
-                                </button>
-                            </form>
-
-                        </div>
-                    }
-                    else
-                    {
-                        <span>@review.Status</span>
-                    }
-                </td>
+                <th>Product</th>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
             </tr>
-        }
 
-    </tbody>
+        </thead>
 
-</table>
+        <tbody>
+
+            @foreach (var review in Model)
+            {
+                <tr>
+
+                    <td>
+                        @review.Product.Name
+                    </td>
+
+                    <td>
+                        @review.User.Email
+                    </td>
+
+                    <td>
+                        @review.Rating / 5
+                    </td>
+
+                    <td>
+                        @review.Comment
+                    </td>
+
+                    <td>
+
+                        @if (review.Status ==
+                            Darbak.Models.Enums.ApprovalStatus.Pending)
+                        {
+                            <span class="badge bg-warning text-dark">
+                                Pending
+                            </span>
+                        }
+                        else if (review.Status ==
+                            Darbak.Models.Enums.ApprovalStatus.Approved)
+                        {
+                            <span class="badge bg-success">
+                                Approved
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">
+                                Rejected
+                            </span>
+                        }
+
+                    </td>
+
+                    <td>
+                        @review.CreatedAt.ToString(
+                            "yyyy-MM-dd HH:mm")
+                    </td>
+
+                    <td>
+
+                        @if (review.Status ==
+                            Darbak.Models.Enums.ApprovalStatus.Pending)
+                        {
+                            <div class="d-flex gap-2">
+
+                                <form asp-action="Approve"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@review.Id" />
+
+                                    <button type="submit"
+                                            class="btn btn-success btn-sm">
+                                        Approve
+                                    </button>
+
+                                </form>
+
+                                <form asp-action="Reject"
+                                      method="post">
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@review.Id" />
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm">
+                                        Reject
+                                    </button>
+
+                                </form>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="text-muted">
+                                No actions
+                            </span>
+                        }
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+}

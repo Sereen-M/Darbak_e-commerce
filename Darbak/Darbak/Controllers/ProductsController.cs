@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Darbak.Models.Enums;
 
 namespace Darbak.Controllers
 {
@@ -18,10 +19,12 @@ namespace Darbak.Controllers
         }
 
         // INDEX
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var products = await _context.Products
                 .Include(p => p.Category)
+                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
             return View(products);
@@ -29,13 +32,9 @@ namespace Darbak.Controllers
 
         // CREATE GET
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.CategoryId = new SelectList(
-                _context.Categories,
-                "Id",
-                "Name"
-            );
+            await LoadCategories();
 
             return View();
         }
@@ -43,28 +42,49 @@ namespace Darbak.Controllers
         // CREATE POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product product)
+        public async Task<IActionResult> Create(
+            [Bind(
+                "Name,Description,Price,StockQuantity,IsActive,CategoryId"
+            )]
+            Product product)
         {
             ModelState.Remove(nameof(Product.Category));
 
-            if (ModelState.IsValid)
+            var categoryExists = await _context.Categories
+                .AnyAsync(c => c.Id == product.CategoryId);
+
+            if (!categoryExists)
             {
-                product.CreatedAt = DateTime.UtcNow;
-
-                _context.Products.Add(product);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(
+                    nameof(Product.CategoryId),
+                    "The selected category does not exist."
+                );
             }
 
-            ViewBag.CategoryId = new SelectList(
-                _context.Categories,
-                "Id",
-                "Name",
-                product.CategoryId
-            );
+            if (!ModelState.IsValid)
+            {
+                await LoadCategories(product.CategoryId);
 
-            return View(product);
+                return View(product);
+            }
+
+            product.Name = product.Name.Trim();
+
+            product.Description =
+                string.IsNullOrWhiteSpace(product.Description)
+                    ? null
+                    : product.Description.Trim();
+
+            product.CreatedAt = DateTime.UtcNow;
+
+            _context.Products.Add(product);
+
+            await _context.SaveChangesAsync();
+
+            TempData["ProductSuccess"] =
+                "Product created successfully.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         // EDIT GET
@@ -76,19 +96,15 @@ namespace Darbak.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
+            var product =
+                await _context.Products.FindAsync(id);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            ViewBag.CategoryId = new SelectList(
-                _context.Categories,
-                "Id",
-                "Name",
-                product.CategoryId
-            );
+            await LoadCategories(product.CategoryId);
 
             return View(product);
         }
@@ -96,7 +112,12 @@ namespace Darbak.Controllers
         // EDIT POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product product)
+        public async Task<IActionResult> Edit(
+            int id,
+            [Bind(
+                "Id,Name,Description,Price,StockQuantity,IsActive,CategoryId"
+            )]
+            Product product)
         {
             if (id != product.Id)
             {
@@ -105,35 +126,58 @@ namespace Darbak.Controllers
 
             ModelState.Remove(nameof(Product.Category));
 
-            if (ModelState.IsValid)
+            var categoryExists = await _context.Categories
+                .AnyAsync(c => c.Id == product.CategoryId);
+
+            if (!categoryExists)
             {
-                var existingProduct = await _context.Products.FindAsync(id);
-
-                if (existingProduct == null)
-                {
-                    return NotFound();
-                }
-
-                existingProduct.Name = product.Name;
-                existingProduct.Description = product.Description;
-                existingProduct.Price = product.Price;
-                existingProduct.StockQuantity = product.StockQuantity;
-                existingProduct.IsActive = product.IsActive;
-                existingProduct.CategoryId = product.CategoryId;
-
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(
+                    nameof(Product.CategoryId),
+                    "The selected category does not exist."
+                );
             }
 
-            ViewBag.CategoryId = new SelectList(
-                _context.Categories,
-                "Id",
-                "Name",
-                product.CategoryId
-            );
+            if (!ModelState.IsValid)
+            {
+                await LoadCategories(product.CategoryId);
 
-            return View(product);
+                return View(product);
+            }
+
+            var existingProduct =
+                await _context.Products.FindAsync(id);
+
+            if (existingProduct == null)
+            {
+                return NotFound();
+            }
+
+            existingProduct.Name =
+                product.Name.Trim();
+
+            existingProduct.Description =
+                string.IsNullOrWhiteSpace(product.Description)
+                    ? null
+                    : product.Description.Trim();
+
+            existingProduct.Price =
+                product.Price;
+
+            existingProduct.StockQuantity =
+                product.StockQuantity;
+
+            existingProduct.IsActive =
+                product.IsActive;
+
+            existingProduct.CategoryId =
+                product.CategoryId;
+
+            await _context.SaveChangesAsync();
+
+            TempData["ProductSuccess"] =
+                "Product updated successfully.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         // DELETE GET
@@ -147,7 +191,10 @@ namespace Darbak.Controllers
 
             var product = await _context.Products
                 .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .Include(p => p.OrderItems)
+                .FirstOrDefaultAsync(
+                    p => p.Id == id
+                );
 
             if (product == null)
             {
@@ -160,20 +207,40 @@ namespace Darbak.Controllers
         // DELETE POST
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(
+            int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.OrderItems)
+                .FirstOrDefaultAsync(
+                    p => p.Id == id
+                );
 
-            if (product != null)
+            if (product == null)
             {
-                _context.Products.Remove(product);
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
+
+            if (product.OrderItems.Any())
+            {
+                TempData["ProductError"] =
+                    "This product cannot be deleted because it exists in previous orders. You can deactivate it instead.";
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            _context.Products.Remove(product);
+
+            await _context.SaveChangesAsync();
+
+            TempData["ProductSuccess"] =
+                "Product deleted successfully.";
 
             return RedirectToAction(nameof(Index));
         }
 
         [AllowAnonymous]
+        [HttpGet]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -182,7 +249,13 @@ namespace Darbak.Controllers
             }
 
             var product = await _context.Products
+                .AsNoTracking()
                 .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.Reviews
+                    .Where(r =>
+                        r.Status == ApprovalStatus.Approved))
+                .ThenInclude(r => r.User)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
@@ -190,7 +263,30 @@ namespace Darbak.Controllers
                 return NotFound();
             }
 
+            // Normal users and guests must not
+            // access inactive products directly.
+            if (!product.IsActive &&
+                !User.IsInRole("Admin"))
+            {
+                return NotFound();
+            }
+
             return View(product);
+        }
+
+        private async Task LoadCategories(
+            int? selectedCategoryId = null)
+        {
+            var categories = await _context.Categories
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+
+            ViewBag.CategoryId = new SelectList(
+                categories,
+                "Id",
+                "Name",
+                selectedCategoryId
+            );
         }
     }
 }

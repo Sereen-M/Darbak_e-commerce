@@ -12,10 +12,10 @@
         You have not placed any orders yet.
     </div>
 
-    <a asp-controller="Products"
+    <a asp-controller="Home"
        asp-action="Index"
-       class="btn btn-primary">
-        Browse Products
+       class="btn btn-secondary">
+        Back to Home
     </a>
 }
 else
@@ -48,6 +48,11 @@ else
                 <p>
                     <strong>Payment:</strong>
                     @order.PaymentStatus
+                </p>
+
+                <p>
+                    <strong>Items:</strong>
+                    @order.OrderItems.Sum(x => x.Quantity)
                 </p>
 
                 <p>

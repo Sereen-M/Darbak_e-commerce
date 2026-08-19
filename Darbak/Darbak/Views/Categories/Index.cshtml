@@ -6,38 +6,85 @@
 
 <h1>Categories</h1>
 
-<a asp-action="Create" class="btn btn-primary mb-3">
+@if (TempData["CategorySuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["CategorySuccess"]
+    </div>
+}
+
+@if (TempData["CategoryError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["CategoryError"]
+    </div>
+}
+
+<a asp-action="Create"
+   class="btn btn-primary mb-3">
     Add Category
 </a>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Name</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No categories have been added yet.
+    </div>
+}
+else
+{
+    <table class="table table-bordered">
 
-    <tbody>
-        @foreach (var category in Model)
-        {
+        <thead>
             <tr>
-                <td>@category.Id</td>
-                <td>@category.Name</td>
-                <td>
-                    <a asp-action="Edit"
-                       asp-route-id="@category.Id"
-                       class="btn btn-warning">
-                        Edit
-                    </a>
-                    <a asp-action="Delete"
-                       asp-route-id="@category.Id"
-                       class="btn btn-danger">
-                        Delete
-                    </a>
-                </td>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+
+        <tbody>
+
+            @foreach (var category in Model)
+            {
+                <tr>
+
+                    <td>
+                        @category.Id
+                    </td>
+
+                    <td>
+                        @category.Name
+                    </td>
+
+                    <td>
+                        @(string.IsNullOrWhiteSpace(
+                            category.Description)
+                            ? "-"
+                            : category.Description)
+                    </td>
+
+                    <td>
+
+                        <a asp-action="Edit"
+                           asp-route-id="@category.Id"
+                           class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                        <a asp-action="Delete"
+                           asp-route-id="@category.Id"
+                           class="btn btn-danger btn-sm">
+                            Delete
+                        </a>
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+}

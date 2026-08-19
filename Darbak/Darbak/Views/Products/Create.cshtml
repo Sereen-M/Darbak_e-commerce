@@ -8,53 +8,115 @@
 
 <form asp-action="Create" method="post">
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+    <div asp-validation-summary="ModelOnly"
+         class="text-danger mb-3">
     </div>
 
     <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
+        <label asp-for="Name"
+               class="form-label">
+        </label>
+
+        <input asp-for="Name"
+               class="form-control" />
+
+        <span asp-validation-for="Name"
+              class="text-danger">
+        </span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Price" class="form-label"></label>
-        <input asp-for="Price" class="form-control" />
-        <span asp-validation-for="Price" class="text-danger"></span>
+        <label asp-for="Description"
+               class="form-label">
+        </label>
+
+        <textarea asp-for="Description"
+                  class="form-control"
+                  rows="4">
+        </textarea>
+
+        <span asp-validation-for="Description"
+              class="text-danger">
+        </span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="StockQuantity" class="form-label"></label>
-        <input asp-for="StockQuantity" class="form-control" />
-        <span asp-validation-for="StockQuantity" class="text-danger"></span>
+        <label asp-for="Price"
+               class="form-label">
+        </label>
+
+        <input asp-for="Price"
+               class="form-control"
+               type="number"
+               step="0.01"
+               min="0.01" />
+
+        <span asp-validation-for="Price"
+              class="text-danger">
+        </span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="CategoryId" class="form-label">Category</label>
+        <label asp-for="StockQuantity"
+               class="form-label">
+        </label>
+
+        <input asp-for="StockQuantity"
+               class="form-control"
+               type="number"
+               min="0" />
+
+        <span asp-validation-for="StockQuantity"
+              class="text-danger">
+        </span>
+    </div>
+
+    <div class="mb-3">
+
+        <label asp-for="CategoryId"
+               class="form-label">
+            Category
+        </label>
 
         <select asp-for="CategoryId"
                 asp-items="ViewBag.CategoryId"
                 class="form-select">
-            <option value="">Select Category</option>
+
+            <option value="0">
+                Select Category
+            </option>
+
         </select>
 
-        <span asp-validation-for="CategoryId" class="text-danger"></span>
+        <span asp-validation-for="CategoryId"
+              class="text-danger">
+        </span>
+
     </div>
 
     <div class="form-check mb-3">
-        <input asp-for="IsActive" class="form-check-input" />
-        <label asp-for="IsActive" class="form-check-label"></label>
+
+        <input asp-for="IsActive"
+               class="form-check-input" />
+
+        <label asp-for="IsActive"
+               class="form-check-label">
+        </label>
+
     </div>
 
-    <button type="submit" class="btn btn-primary">
+    <button type="submit"
+            class="btn btn-primary">
         Create
     </button>
 
-    <a asp-action="Index" class="btn btn-secondary">
+    <a asp-action="Index"
+       class="btn btn-secondary">
         Back
     </a>
 
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

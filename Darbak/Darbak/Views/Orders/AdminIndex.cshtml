@@ -6,6 +6,20 @@
 
 <h1>Manage Orders</h1>
 
+@if (TempData["AdminOrderSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["AdminOrderSuccess"]
+    </div>
+}
+
+@if (TempData["OrderError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["OrderError"]
+    </div>
+}
+
 @if (!Model.Any())
 {
     <div class="alert alert-info">

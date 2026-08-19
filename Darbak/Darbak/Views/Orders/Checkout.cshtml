@@ -6,11 +6,19 @@
 
 <h1>Checkout</h1>
 
+@if (TempData["CheckoutInfo"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["CheckoutInfo"]
+    </div>
+}
+
 <form asp-action="Checkout"
-      method="post">
+      method="post"
+      id="checkoutForm">
 
     <div asp-validation-summary="ModelOnly"
-         class="text-danger mb-3">
+         class="alert alert-danger">
     </div>
 
     <div class="row">
@@ -20,6 +28,7 @@
             <h4>Shipping Information</h4>
 
             <div class="mb-3">
+
                 <label asp-for="ShippingAddress"
                        class="form-label">
                 </label>
@@ -30,9 +39,11 @@
                 <span asp-validation-for="ShippingAddress"
                       class="text-danger">
                 </span>
+
             </div>
 
             <div class="mb-3">
+
                 <label asp-for="City"
                        class="form-label">
                 </label>
@@ -43,19 +54,23 @@
                 <span asp-validation-for="City"
                       class="text-danger">
                 </span>
+
             </div>
 
             <div class="mb-3">
+
                 <label asp-for="PhoneNumber"
                        class="form-label">
                 </label>
 
                 <input asp-for="PhoneNumber"
-                       class="form-control" />
+                       class="form-control"
+                       type="tel" />
 
                 <span asp-validation-for="PhoneNumber"
                       class="text-danger">
                 </span>
+
             </div>
 
         </div>
@@ -64,38 +79,45 @@
 
             <h4>Order Summary</h4>
 
-            <table class="table">
+            <div class="table-responsive">
 
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Qty</th>
-                        <th>Total</th>
-                    </tr>
-                </thead>
+                <table class="table">
 
-                <tbody>
-
-                    @foreach (var item in Model.CartItems)
-                    {
+                    <thead>
                         <tr>
-                            <td>
-                                @item.ProductName
-                            </td>
-
-                            <td>
-                                @item.Quantity
-                            </td>
-
-                            <td>
-                                @item.Total.ToString("0.00")
-                            </td>
+                            <th>Product</th>
+                            <th>Qty</th>
+                            <th>Total</th>
                         </tr>
-                    }
+                    </thead>
 
-                </tbody>
+                    <tbody>
 
-            </table>
+                        @foreach (var item
+                                  in Model.CartItems)
+                        {
+                            <tr>
+
+                                <td>
+                                    @item.ProductName
+                                </td>
+
+                                <td>
+                                    @item.Quantity
+                                </td>
+
+                                <td>
+                                    @item.Total.ToString("0.00")
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
             <h5>
                 Total:
@@ -103,7 +125,8 @@
             </h5>
 
             <button type="submit"
-                    class="btn btn-primary mt-3">
+                    id="placeOrderButton"
+                    class="btn btn-success mt-3">
                 Place Order
             </button>
 
@@ -120,5 +143,25 @@
 </form>
 
 @section Scripts {
+
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document
+            .getElementById("checkoutForm")
+            .addEventListener("submit", function() {
+
+                if (!$(this).valid()) {
+                    return;
+                }
+
+                const button =
+                    document.getElementById(
+                        "placeOrderButton");
+
+                button.disabled = true;
+                button.innerText =
+                    "Placing Order...";
+            });
+    </script>
 }

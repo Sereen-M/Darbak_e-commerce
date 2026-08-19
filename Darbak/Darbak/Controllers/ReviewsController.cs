@@ -11,7 +11,6 @@ namespace Darbak.Controllers
     [Authorize]
     public class ReviewsController : Controller
     {
-
         private readonly ApplicationDbContext _context;
 
         public ReviewsController(ApplicationDbContext context)
@@ -19,39 +18,71 @@ namespace Darbak.Controllers
             _context = context;
         }
 
+        // CREATE GET
         [HttpGet]
-        public IActionResult Create(int productId)
+        public async Task<IActionResult> Create(int productId)
         {
-            var product = _context.Products.Find(productId);
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p =>
+                    p.Id == productId &&
+                    p.IsActive);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            ViewBag.ProductId = productId;
             ViewBag.ProductName = product.Name;
 
-            return View();
+            var review = new Review
+            {
+                ProductId = product.Id
+            };
+
+            return View(review);
         }
 
+        // CREATE POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(Review review)
+        public async Task<IActionResult> Create(
+            [Bind("ProductId,Rating,Comment")]
+            Review review)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
 
             if (userId == null)
             {
-                return Unauthorized();
+                return Challenge();
+            }
+
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p =>
+                    p.Id == review.ProductId &&
+                    p.IsActive);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            // These properties are assigned by the server,
+            // not by the user.
+            ModelState.Remove(nameof(Review.UserId));
+            ModelState.Remove(nameof(Review.User));
+            ModelState.Remove(nameof(Review.Product));
+            ModelState.Remove(nameof(Review.Status));
+            ModelState.Remove(nameof(Review.CreatedAt));
+
+            if (!string.IsNullOrWhiteSpace(review.Comment))
+            {
+                review.Comment = review.Comment.Trim();
             }
 
             if (!ModelState.IsValid)
             {
-                var product = _context.Products.Find(review.ProductId);
-
-                ViewBag.ProductId = review.ProductId;
-                ViewBag.ProductName = product?.Name;
+                ViewBag.ProductName = product.Name;
 
                 return View(review);
             }
@@ -61,15 +92,21 @@ namespace Darbak.Controllers
             review.CreatedAt = DateTime.UtcNow;
 
             _context.Reviews.Add(review);
-            _context.SaveChanges();
+
+            await _context.SaveChangesAsync();
+
+            TempData["ReviewSuccess"] =
+                "Your review was submitted and is waiting for approval.";
 
             return RedirectToAction(
                 "Details",
                 "Products",
-                new { id = review.ProductId }
-            );
+                new { id = review.ProductId });
         }
+
+        // ADMIN INDEX
         [Authorize(Roles = "Admin")]
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var reviews = await _context.Reviews
@@ -80,12 +117,15 @@ namespace Darbak.Controllers
 
             return View(reviews);
         }
+
+        // APPROVE
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int id)
         {
-            var review = await _context.Reviews.FindAsync(id);
+            var review = await _context.Reviews
+                .FindAsync(id);
 
             if (review == null)
             {
@@ -96,14 +136,20 @@ namespace Darbak.Controllers
 
             await _context.SaveChangesAsync();
 
+            TempData["ReviewAdminSuccess"] =
+                "Review approved successfully.";
+
             return RedirectToAction(nameof(Index));
         }
+
+        // REJECT
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Reject(int id)
         {
-            var review = await _context.Reviews.FindAsync(id);
+            var review = await _context.Reviews
+                .FindAsync(id);
 
             if (review == null)
             {
@@ -113,6 +159,9 @@ namespace Darbak.Controllers
             review.Status = ApprovalStatus.Rejected;
 
             await _context.SaveChangesAsync();
+
+            TempData["ReviewAdminSuccess"] =
+                "Review rejected successfully.";
 
             return RedirectToAction(nameof(Index));
         }

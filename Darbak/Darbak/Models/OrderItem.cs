@@ -1,7 +1,5 @@
 ﻿using Darbak.Models;
-using Microsoft.CodeAnalysis;
 using System.ComponentModel.DataAnnotations.Schema;
-using Darbak.Models.Enums;
 
 
 namespace Darbak.Models

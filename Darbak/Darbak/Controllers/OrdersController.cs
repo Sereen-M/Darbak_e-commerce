@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Data;
+using System.Security.Claims;
 using System.Text.Json;
 using Darbak.Data;
 using Darbak.Models;
@@ -17,35 +18,65 @@ namespace Darbak.Controllers
 
         private const string CartSessionKey = "Cart";
 
-        public OrdersController(ApplicationDbContext context)
+        public OrdersController(
+            ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // =========================
+        // ==========================================
         // CHECKOUT GET
-        // =========================
+        // ==========================================
         [HttpGet]
-        public IActionResult Checkout()
+        public async Task<IActionResult> Checkout()
         {
             var cart = GetCart();
 
-            if (cart.Count == 0)
+            if (!cart.Any())
             {
-                return RedirectToAction("Index", "Cart");
+                TempData["CartError"] =
+                    "Your cart is empty.";
+
+                return RedirectToAction(
+                    "Index",
+                    "Cart");
             }
 
-            var viewModel = new CheckoutViewModel
+            var synchronizationResult =
+                await SynchronizeCartAsync(cart);
+
+            cart = synchronizationResult.Cart;
+
+            if (!cart.Any())
             {
-                CartItems = cart
-            };
+                TempData["CartError"] =
+                    "There are no available products in your cart.";
+
+                return RedirectToAction(
+                    "Index",
+                    "Cart");
+            }
+
+            if (synchronizationResult.Changed)
+            {
+                SaveCart(cart);
+
+                TempData["CheckoutInfo"] =
+                    "Your cart was updated to match the latest product information and stock.";
+            }
+
+            var viewModel =
+                new CheckoutViewModel
+                {
+                    CartItems = cart
+                };
 
             return View(viewModel);
         }
 
-        // =========================
+        // ==========================================
         // CHECKOUT POST
-        // =========================
+        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(
@@ -53,16 +84,14 @@ namespace Darbak.Controllers
         {
             var cart = GetCart();
 
-            if (cart.Count == 0)
+            if (!cart.Any())
             {
-                return RedirectToAction("Index", "Cart");
-            }
+                TempData["CartError"] =
+                    "Your cart is empty.";
 
-            viewModel.CartItems = cart;
-
-            if (!ModelState.IsValid)
-            {
-                return View(viewModel);
+                return RedirectToAction(
+                    "Index",
+                    "Cart");
             }
 
             var userId =
@@ -74,110 +103,268 @@ namespace Darbak.Controllers
                 return Challenge();
             }
 
-            var productIds = cart
-                .Select(x => x.ProductId)
-                .Distinct()
-                .ToList();
+            // Never trust CartItems posted by the browser.
+            // Use the server-side Session cart instead.
+            viewModel.CartItems = cart;
 
-            var products =
-                await _context.Products
-                    .Where(p =>
-                        productIds.Contains(p.Id))
-                    .ToDictionaryAsync(p => p.Id);
-
-            // Validate products and stock
-            foreach (var cartItem in cart)
+            if (!string.IsNullOrWhiteSpace(
+                    viewModel.ShippingAddress))
             {
-                if (!products.TryGetValue(
-                        cartItem.ProductId,
-                        out var product))
-                {
-                    ModelState.AddModelError(
-                        "",
-                        $"{cartItem.ProductName} no longer exists."
-                    );
-
-                    return View(viewModel);
-                }
-
-                if (!product.IsActive)
-                {
-                    ModelState.AddModelError(
-                        "",
-                        $"{product.Name} is no longer available."
-                    );
-
-                    return View(viewModel);
-                }
-
-                if (product.StockQuantity <
-                    cartItem.Quantity)
-                {
-                    ModelState.AddModelError(
-                        "",
-                        $"Not enough stock for {product.Name}."
-                    );
-
-                    return View(viewModel);
-                }
+                viewModel.ShippingAddress =
+                    viewModel.ShippingAddress.Trim();
             }
 
-            var order = new Order
+            if (!string.IsNullOrWhiteSpace(
+                    viewModel.City))
             {
-                UserId = userId,
-                ShippingAddress =
-                    viewModel.ShippingAddress,
-
-                City =
-                    viewModel.City,
-
-                PhoneNumber =
-                    viewModel.PhoneNumber,
-
-                TotalAmount = 0
-            };
-
-            foreach (var cartItem in cart)
-            {
-                var product =
-                    products[cartItem.ProductId];
-
-                var orderItem = new OrderItem
-                {
-                    ProductId = product.Id,
-                    Quantity = cartItem.Quantity,
-                    UnitPrice = product.Price
-                };
-
-                order.OrderItems.Add(orderItem);
-
-                order.TotalAmount +=
-                    product.Price *
-                    cartItem.Quantity;
-
-                product.StockQuantity -=
-                    cartItem.Quantity;
+                viewModel.City =
+                    viewModel.City.Trim();
             }
 
-            _context.Orders.Add(order);
+            if (!string.IsNullOrWhiteSpace(
+                    viewModel.PhoneNumber))
+            {
+                viewModel.PhoneNumber =
+                    viewModel.PhoneNumber.Trim();
+            }
 
-            await _context.SaveChangesAsync();
+            if (!ModelState.IsValid)
+            {
+                var sync =
+                    await SynchronizeCartAsync(cart);
 
-            // Clear cart only after successful order
-            HttpContext.Session.Remove(
-                CartSessionKey);
+                viewModel.CartItems =
+                    sync.Cart;
 
-            TempData["OrderSuccess"] =
-                $"Order #{order.Id} was placed successfully.";
+                if (sync.Changed)
+                {
+                    SaveCart(sync.Cart);
+                }
 
-            return RedirectToAction(
-                nameof(Details),
-                new { id = order.Id });
+                return View(viewModel);
+            }
+
+            // Prevent invalid quantities even if Session data
+            // somehow becomes corrupted.
+            if (cart.Any(x => x.Quantity <= 0))
+            {
+                TempData["CartError"] =
+                    "Your cart contains an invalid quantity.";
+
+                return RedirectToAction(
+                    "Index",
+                    "Cart");
+            }
+
+            await using var transaction =
+                await _context.Database
+                    .BeginTransactionAsync(
+                        IsolationLevel.Serializable);
+
+            try
+            {
+                var productIds =
+                    cart
+                        .Select(x => x.ProductId)
+                        .Distinct()
+                        .ToList();
+
+                // Cart should never contain duplicate rows
+                // for the same product.
+                if (productIds.Count != cart.Count)
+                {
+                    await transaction.RollbackAsync();
+
+                    TempData["CartError"] =
+                        "Your cart contains duplicate products. Please review your cart.";
+
+                    return RedirectToAction(
+                        "Index",
+                        "Cart");
+                }
+
+                var products =
+                    await _context.Products
+                        .Where(p =>
+                            productIds.Contains(p.Id))
+                        .ToDictionaryAsync(
+                            p => p.Id);
+
+                var checkoutHasErrors = false;
+
+                // Refresh cart values using DB values.
+                foreach (var cartItem in cart)
+                {
+                    if (!products.TryGetValue(
+                            cartItem.ProductId,
+                            out var product))
+                    {
+                        ModelState.AddModelError(
+                            "",
+                            $"{cartItem.ProductName} no longer exists.");
+
+                        checkoutHasErrors = true;
+
+                        continue;
+                    }
+
+                    cartItem.ProductName =
+                        product.Name;
+
+                    cartItem.Price =
+                        product.Price;
+
+                    if (!product.IsActive)
+                    {
+                        ModelState.AddModelError(
+                            "",
+                            $"{product.Name} is no longer available.");
+
+                        checkoutHasErrors = true;
+
+                        continue;
+                    }
+
+                    if (product.StockQuantity <= 0)
+                    {
+                        ModelState.AddModelError(
+                            "",
+                            $"{product.Name} is out of stock.");
+
+                        checkoutHasErrors = true;
+
+                        continue;
+                    }
+
+                    if (product.StockQuantity <
+                        cartItem.Quantity)
+                    {
+                        ModelState.AddModelError(
+                            "",
+                            $"Only {product.StockQuantity} item(s) of {product.Name} are currently available.");
+
+                        checkoutHasErrors = true;
+                    }
+                }
+
+                if (checkoutHasErrors)
+                {
+                    await transaction.RollbackAsync();
+
+                    SaveCart(cart);
+
+                    viewModel.CartItems =
+                        cart;
+
+                    return View(viewModel);
+                }
+
+                var order =
+                    new Order
+                    {
+                        UserId =
+                            userId,
+
+                        OrderDate =
+                            DateTime.UtcNow,
+
+                        Status =
+                            OrderStatus.Processing,
+
+                        PaymentStatus =
+                            PaymentStatus.Pending,
+
+                        ShippingAddress =
+                            viewModel.ShippingAddress,
+
+                        City =
+                            viewModel.City,
+
+                        PhoneNumber =
+                            viewModel.PhoneNumber,
+
+                        TotalAmount = 0
+                    };
+
+                foreach (var cartItem in cart)
+                {
+                    var product =
+                        products[cartItem.ProductId];
+
+                    var orderItem =
+                        new OrderItem
+                        {
+                            ProductId =
+                                product.Id,
+
+                            Quantity =
+                                cartItem.Quantity,
+
+                            // Always take the current
+                            // database price.
+                            UnitPrice =
+                                product.Price
+                        };
+
+                    order.OrderItems.Add(
+                        orderItem);
+
+                    order.TotalAmount +=
+                        orderItem.UnitPrice *
+                        orderItem.Quantity;
+
+                    product.StockQuantity -=
+                        cartItem.Quantity;
+                }
+
+                _context.Orders.Add(order);
+
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                // Clear the cart only after
+                // the transaction succeeds.
+                HttpContext.Session.Remove(
+                    CartSessionKey);
+
+                TempData["OrderSuccess"] =
+                    $"Order #{order.Id} was placed successfully.";
+
+                return RedirectToAction(
+                    nameof(Details),
+                    new
+                    {
+                        id = order.Id
+                    });
+            }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+
+                ModelState.AddModelError(
+                    "",
+                    "The order could not be completed because the product data changed. Please review your cart and try again.");
+
+                var sync =
+                    await SynchronizeCartAsync(
+                        GetCart());
+
+                viewModel.CartItems =
+                    sync.Cart;
+
+                if (sync.Changed)
+                {
+                    SaveCart(sync.Cart);
+                }
+
+                return View(viewModel);
+            }
         }
 
-        // =========================
+        // ==========================================
         // USER - MY ORDERS
-        // =========================
+        // ==========================================
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -192,6 +379,7 @@ namespace Darbak.Controllers
 
             var orders =
                 await _context.Orders
+                    .AsNoTracking()
                     .Where(o =>
                         o.UserId == userId)
                     .Include(o =>
@@ -205,9 +393,9 @@ namespace Darbak.Controllers
             return View(orders);
         }
 
-        // =========================
+        // ==========================================
         // USER - ORDER DETAILS
-        // =========================
+        // ==========================================
         [HttpGet]
         public async Task<IActionResult> Details(
             int id)
@@ -223,6 +411,7 @@ namespace Darbak.Controllers
 
             var order =
                 await _context.Orders
+                    .AsNoTracking()
                     .Include(o =>
                         o.OrderItems)
                     .ThenInclude(oi =>
@@ -239,17 +428,20 @@ namespace Darbak.Controllers
             return View(order);
         }
 
-        // =========================
+        // ==========================================
         // ADMIN - ALL ORDERS
-        // =========================
+        // ==========================================
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> AdminIndex()
         {
             var orders =
                 await _context.Orders
-                    .Include(o => o.User)
-                    .Include(o => o.OrderItems)
+                    .AsNoTracking()
+                    .Include(o =>
+                        o.User)
+                    .Include(o =>
+                        o.OrderItems)
                     .OrderByDescending(o =>
                         o.OrderDate)
                     .ToListAsync();
@@ -257,9 +449,9 @@ namespace Darbak.Controllers
             return View(orders);
         }
 
-        // =========================
+        // ==========================================
         // ADMIN - ORDER DETAILS
-        // =========================
+        // ==========================================
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> AdminDetails(
@@ -267,7 +459,9 @@ namespace Darbak.Controllers
         {
             var order =
                 await _context.Orders
-                    .Include(o => o.User)
+                    .AsNoTracking()
+                    .Include(o =>
+                        o.User)
                     .Include(o =>
                         o.OrderItems)
                     .ThenInclude(oi =>
@@ -283,9 +477,9 @@ namespace Darbak.Controllers
             return View(order);
         }
 
-        // =========================
+        // ==========================================
         // ADMIN - UPDATE ORDER STATUS
-        // =========================
+        // ==========================================
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -300,88 +494,128 @@ namespace Darbak.Controllers
                 return BadRequest();
             }
 
-            var order =
-                await _context.Orders
-                    .Include(o =>
-                        o.OrderItems)
-                    .ThenInclude(oi =>
-                        oi.Product)
-                    .FirstOrDefaultAsync(o =>
-                        o.Id == id);
+            await using var transaction =
+                await _context.Database
+                    .BeginTransactionAsync(
+                        IsolationLevel.Serializable);
 
-            if (order == null)
+            try
             {
-                return NotFound();
-            }
+                var order =
+                    await _context.Orders
+                        .Include(o =>
+                            o.OrderItems)
+                        .ThenInclude(oi =>
+                            oi.Product)
+                        .FirstOrDefaultAsync(o =>
+                            o.Id == id);
 
-            // No change needed
-            if (order.Status == status)
-            {
+                if (order == null)
+                {
+                    await transaction.RollbackAsync();
+
+                    return NotFound();
+                }
+
+                if (order.Status == status)
+                {
+                    await transaction.RollbackAsync();
+
+                    return RedirectToAction(
+                        nameof(AdminDetails),
+                        new { id });
+                }
+
+                // Moving INTO Cancelled:
+                // return stock.
+                if (order.Status !=
+                        OrderStatus.Cancelled &&
+                    status ==
+                        OrderStatus.Cancelled)
+                {
+                    foreach (var item
+                             in order.OrderItems)
+                    {
+                        item.Product.StockQuantity +=
+                            item.Quantity;
+                    }
+                }
+
+                // Moving OUT OF Cancelled:
+                // stock must be available again.
+                if (order.Status ==
+                        OrderStatus.Cancelled &&
+                    status !=
+                        OrderStatus.Cancelled)
+                {
+                    foreach (var item
+                             in order.OrderItems)
+                    {
+                        if (!item.Product.IsActive)
+                        {
+                            await transaction
+                                .RollbackAsync();
+
+                            TempData["OrderError"] =
+                                $"{item.Product.Name} is inactive and the order cannot be reactivated.";
+
+                            return RedirectToAction(
+                                nameof(AdminDetails),
+                                new { id });
+                        }
+
+                        if (item.Product.StockQuantity <
+                            item.Quantity)
+                        {
+                            await transaction
+                                .RollbackAsync();
+
+                            TempData["OrderError"] =
+                                $"Not enough stock for {item.Product.Name}.";
+
+                            return RedirectToAction(
+                                nameof(AdminDetails),
+                                new { id });
+                        }
+                    }
+
+                    foreach (var item
+                             in order.OrderItems)
+                    {
+                        item.Product.StockQuantity -=
+                            item.Quantity;
+                    }
+                }
+
+                order.Status = status;
+
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                TempData["AdminOrderSuccess"] =
+                    "Order status updated successfully.";
+
                 return RedirectToAction(
                     nameof(AdminDetails),
                     new { id });
             }
-
-            // If order becomes cancelled,
-            // return quantities to stock
-            if (order.Status !=
-                    OrderStatus.Cancelled &&
-                status ==
-                    OrderStatus.Cancelled)
+            catch (DbUpdateException)
             {
-                foreach (var item
-                         in order.OrderItems)
-                {
-                    item.Product.StockQuantity +=
-                        item.Quantity;
-                }
+                await transaction.RollbackAsync();
+
+                TempData["OrderError"] =
+                    "The order status could not be updated because the data changed. Please try again.";
+
+                return RedirectToAction(
+                    nameof(AdminDetails),
+                    new { id });
             }
-
-            // If cancelled order is activated again,
-            // stock must still be available
-            if (order.Status ==
-                    OrderStatus.Cancelled &&
-                status !=
-                    OrderStatus.Cancelled)
-            {
-                foreach (var item
-                         in order.OrderItems)
-                {
-                    if (item.Product.StockQuantity <
-                        item.Quantity)
-                    {
-                        TempData["OrderError"] =
-                            $"Not enough stock for {item.Product.Name}.";
-
-                        return RedirectToAction(
-                            nameof(AdminDetails),
-                            new { id });
-                    }
-                }
-
-                foreach (var item
-                         in order.OrderItems)
-                {
-                    item.Product.StockQuantity -=
-                        item.Quantity;
-                }
-            }
-
-            order.Status = status;
-
-            await _context.SaveChangesAsync();
-
-            TempData["AdminOrderSuccess"] =
-                "Order status updated successfully.";
-
-            return RedirectToAction(
-                nameof(AdminDetails),
-                new { id });
         }
 
-        // =========================
+        // ==========================================
         // ADMIN - UPDATE PAYMENT STATUS
-        // =========================
+        // ==========================================
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -407,6 +641,14 @@ namespace Darbak.Controllers
                 return NotFound();
             }
 
+            if (order.PaymentStatus ==
+                paymentStatus)
+            {
+                return RedirectToAction(
+                    nameof(AdminDetails),
+                    new { id });
+            }
+
             order.PaymentStatus =
                 paymentStatus;
 
@@ -420,25 +662,180 @@ namespace Darbak.Controllers
                 new { id });
         }
 
-        // =========================
-        // GET CART FROM SESSION
-        // =========================
+        // ==========================================
+        // SYNCHRONIZE SESSION CART WITH DATABASE
+        // ==========================================
+        private async Task<CartSynchronizationResult>
+            SynchronizeCartAsync(
+                List<CartItemViewModel> cart)
+        {
+            if (!cart.Any())
+            {
+                return new CartSynchronizationResult
+                {
+                    Cart = cart,
+                    Changed = false
+                };
+            }
+
+            var productIds =
+                cart
+                    .Select(x => x.ProductId)
+                    .Distinct()
+                    .ToList();
+
+            var products =
+                await _context.Products
+                    .AsNoTracking()
+                    .Include(p => p.Images)
+                    .Where(p =>
+                        productIds.Contains(p.Id))
+                    .ToDictionaryAsync(
+                        p => p.Id);
+
+            var changed = false;
+
+            foreach (var item
+                     in cart.ToList())
+            {
+                if (!products.TryGetValue(
+                        item.ProductId,
+                        out var product))
+                {
+                    cart.Remove(item);
+
+                    changed = true;
+
+                    continue;
+                }
+
+                if (!product.IsActive ||
+                    product.StockQuantity <= 0)
+                {
+                    cart.Remove(item);
+
+                    changed = true;
+
+                    continue;
+                }
+
+                var imageUrl =
+                    product.Images
+                        .OrderByDescending(
+                            i => i.IsMain)
+                        .ThenBy(i => i.Id)
+                        .Select(i => i.ImageUrl)
+                        .FirstOrDefault();
+
+                if (item.ProductName !=
+                    product.Name)
+                {
+                    item.ProductName =
+                        product.Name;
+
+                    changed = true;
+                }
+
+                if (item.Price !=
+                    product.Price)
+                {
+                    item.Price =
+                        product.Price;
+
+                    changed = true;
+                }
+
+                if (item.ImageUrl !=
+                    imageUrl)
+                {
+                    item.ImageUrl =
+                        imageUrl;
+
+                    changed = true;
+                }
+
+                if (item.Quantity >
+                    product.StockQuantity)
+                {
+                    item.Quantity =
+                        product.StockQuantity;
+
+                    changed = true;
+                }
+
+                if (item.Quantity <= 0)
+                {
+                    cart.Remove(item);
+
+                    changed = true;
+                }
+            }
+
+            return new CartSynchronizationResult
+            {
+                Cart = cart,
+                Changed = changed
+            };
+        }
+
+        // ==========================================
+        // GET CART
+        // ==========================================
         private List<CartItemViewModel> GetCart()
         {
             var cartJson =
                 HttpContext.Session
                     .GetString(CartSessionKey);
 
-            if (string.IsNullOrEmpty(
+            if (string.IsNullOrWhiteSpace(
                     cartJson))
             {
                 return new List<CartItemViewModel>();
             }
 
-            return JsonSerializer
-                .Deserialize<List<CartItemViewModel>>(
-                    cartJson)
-                ?? new List<CartItemViewModel>();
+            try
+            {
+                return JsonSerializer
+                    .Deserialize<
+                        List<CartItemViewModel>>(
+                        cartJson)
+                    ?? new List<CartItemViewModel>();
+            }
+            catch (JsonException)
+            {
+                HttpContext.Session.Remove(
+                    CartSessionKey);
+
+                return new List<CartItemViewModel>();
+            }
+        }
+
+        // ==========================================
+        // SAVE CART
+        // ==========================================
+        private void SaveCart(
+            List<CartItemViewModel> cart)
+        {
+            if (!cart.Any())
+            {
+                HttpContext.Session.Remove(
+                    CartSessionKey);
+
+                return;
+            }
+
+            HttpContext.Session.SetString(
+                CartSessionKey,
+                JsonSerializer.Serialize(cart));
+        }
+
+        private sealed class
+            CartSynchronizationResult
+        {
+            public List<CartItemViewModel> Cart { get; set; }
+                = new();
+
+            public bool Changed { get; set; }
         }
     }
 }

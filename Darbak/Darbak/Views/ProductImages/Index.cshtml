@@ -6,6 +6,20 @@
 
 <h1>Images - @Model.Name</h1>
 
+@if (TempData["ImageSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["ImageSuccess"]
+    </div>
+}
+
+@if (TempData["ImageError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ImageError"]
+    </div>
+}
+
 <a asp-action="Create"
    asp-route-productId="@Model.Id"
    class="btn btn-primary mb-3">
@@ -22,24 +36,33 @@ else
 {
     <div class="row">
 
-        @foreach (var image in Model.Images)
+        @foreach (var image in Model.Images
+            .OrderByDescending(i => i.IsMain)
+            .ThenBy(i => i.Id))
         {
             <div class="col-md-3 mb-3">
 
-                <div class="card">
+                <div class="card h-100">
 
                     <img src="@image.ImageUrl"
                          class="card-img-top"
-                         alt="@Model.Name" />
+                         alt="@Model.Name"
+                         style="height: 200px; object-fit: cover;" />
 
                     <div class="card-body">
 
                         @if (image.IsMain)
                         {
-                            <span class="badge bg-success mb-2">
-                                Main Image
-                            </span>
+                            <div class="mb-2">
+                                <span class="badge bg-success">
+                                    Main Image
+                                </span>
+                            </div>
                         }
+
+                        <p class="small text-muted text-break">
+                            @image.ImageUrl
+                        </p>
 
                         @if (!image.IsMain)
                         {

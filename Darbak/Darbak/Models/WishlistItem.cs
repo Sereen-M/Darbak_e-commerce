@@ -1,5 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-
+﻿
 namespace Darbak.Models
 {
     public class WishlistItem
