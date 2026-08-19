@@ -1,0 +1,94 @@
+﻿@model IEnumerable<Darbak.Models.Review>
+
+@{
+    ViewData["Title"] = "Reviews";
+}
+
+<h2>Reviews</h2>
+
+<table class="table table-bordered">
+
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>User</th>
+            <th>Rating</th>
+            <th>Comment</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        @foreach (var review in Model)
+        {
+            <tr>
+                <td>
+                    @review.Product.Name
+                </td>
+
+                <td>
+                    @review.User.Email
+                </td>
+
+                <td>
+                    @review.Rating / 5
+                </td>
+
+                <td>
+                    @review.Comment
+                </td>
+
+                <td>
+                    @review.Status
+                </td>
+
+                <td>
+                    @review.CreatedAt.ToString("yyyy-MM-dd")
+                </td>
+                <td>
+                    @if (review.Status == Darbak.Models.Enums.ApprovalStatus.Pending)
+                    {
+                        <div class="d-flex gap-2">
+
+                            <form asp-action="Approve"
+                                  method="post">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@review.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-success btn-sm">
+                                    Approve
+                                </button>
+                            </form>
+
+                            <form asp-action="Reject"
+                                  method="post">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@review.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-danger btn-sm">
+                                    Reject
+                                </button>
+                            </form>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <span>@review.Status</span>
+                    }
+                </td>
+            </tr>
+        }
+
+    </tbody>
+
+</table>
