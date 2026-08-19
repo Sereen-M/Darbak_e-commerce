@@ -33,13 +33,15 @@ namespace Darbak.Controllers
             return View();
         }
 
-        // CREATE POST
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Category category)
         {
             if (!string.IsNullOrWhiteSpace(category.Name))
             {
+                category.Name = category.Name.Trim();
+
                 var nameExists = await _context.Categories
                     .AnyAsync(c => c.Name == category.Name);
 
@@ -57,14 +59,13 @@ namespace Darbak.Controllers
                 return View(category);
             }
 
-            category.Name = category.Name.Trim();
-
-            if (!string.IsNullOrWhiteSpace(category.Description))
-            {
-                category.Description = category.Description.Trim();
-            }
+            category.Description =
+                string.IsNullOrWhiteSpace(category.Description)
+                    ? null
+                    : category.Description.Trim();
 
             _context.Categories.Add(category);
+
             await _context.SaveChangesAsync();
 
             TempData["CategorySuccess"] =

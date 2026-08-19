@@ -31,9 +31,7 @@ else
                 </strong>
 
                 <span class="float-end">
-                    @order.OrderDate
-                    .ToLocalTime()
-                    .ToString("dd/MM/yyyy HH:mm")
+                    @(order.OrderDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm"))
                 </span>
 
             </div>
