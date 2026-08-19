@@ -1,0 +1,131 @@
+﻿@model IEnumerable<Darbak.Models.Testimonial>
+
+@{
+    ViewData["Title"] = "Manage Testimonials";
+}
+
+<h1 class="mb-4">Manage Testimonials</h1>
+
+@if (TempData["TestimonialSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["TestimonialSuccess"]
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No testimonials have been submitted yet.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+
+        <table class="table table-bordered align-middle">
+
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Content</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (var testimonial in Model)
+                {
+                    <tr>
+
+                        <td>
+                            @(string.IsNullOrWhiteSpace(testimonial.User.FullName)
+                                ? testimonial.User.UserName
+                                : testimonial.User.FullName)
+                        </td>
+
+                        <td>
+                            @testimonial.Content
+                        </td>
+
+                        <td>
+                            @if (testimonial.Status ==
+                                Darbak.Models.Enums.ApprovalStatus.Pending)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    Pending
+                                </span>
+                            }
+                            else if (testimonial.Status ==
+                                     Darbak.Models.Enums.ApprovalStatus.Approved)
+                            {
+                                <span class="badge bg-success">
+                                    Approved
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+                                    Rejected
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            @testimonial.CreatedAt.ToString("yyyy-MM-dd")
+                        </td>
+
+                        <td>
+
+                            @if (testimonial.Status !=
+                                 Darbak.Models.Enums.ApprovalStatus.Approved)
+                            {
+                                <form asp-action="Approve"
+                                      method="post"
+                                      class="d-inline">
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@testimonial.Id" />
+
+                                    <button type="submit"
+                                            class="btn btn-success btn-sm">
+                                        Approve
+                                    </button>
+
+                                </form>
+                            }
+
+                            @if (testimonial.Status !=
+                                 Darbak.Models.Enums.ApprovalStatus.Rejected)
+                            {
+                                <form asp-action="Reject"
+                                      method="post"
+                                      class="d-inline">
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@testimonial.Id" />
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm">
+                                        Reject
+                                    </button>
+
+                                </form>
+                            }
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+}
