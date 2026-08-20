@@ -11,7 +11,8 @@
 <hr />
 
 <form asp-action="Create"
-      method="post">
+      method="post"
+      enctype="multipart/form-data">
 
     <input asp-for="ProductId"
            type="hidden" />
@@ -22,21 +23,26 @@
 
     <div class="mb-3">
 
-        <label asp-for="ImageUrl"
+        <label for="imageFile"
                class="form-label">
+            Product Image
         </label>
 
-        <input asp-for="ImageUrl"
+        <input type="file"
+               id="imageFile"
+               name="imageFile"
                class="form-control"
-               placeholder="https://example.com/image.jpg" />
+               accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+               required />
 
-        <span asp-validation-for="ImageUrl"
-              class="text-danger">
-        </span>
+        @Html.ValidationMessage(
+            "imageFile",
+            null,
+            new { @class = "text-danger" })
 
         <div class="form-text">
-            Use an HTTP/HTTPS image URL or a local path
-            such as /images/products/image.jpg.
+            Allowed formats: JPG, JPEG, PNG, WebP.
+            Maximum size: 5 MB.
         </div>
 
     </div>
@@ -59,7 +65,7 @@
 
     <button type="submit"
             class="btn btn-primary">
-        Add Image
+        Upload Image
     </button>
 
     <a asp-action="Index"
