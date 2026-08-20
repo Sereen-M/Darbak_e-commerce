@@ -46,12 +46,14 @@ namespace Darbak.Controllers
         }
 
         // CREATE POST
+        // CREATE POST
+        // CREATE POST
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("Content")]
-            Testimonial testimonial)
+    Testimonial testimonial)
         {
             var userId =
                 User.FindFirstValue(
@@ -62,13 +64,31 @@ namespace Darbak.Controllers
                 return Challenge();
             }
 
+            // These properties are assigned by the server,
+            // not by the user.
+            ModelState.Remove(
+                nameof(Testimonial.UserId));
+
+            ModelState.Remove(
+                nameof(Testimonial.User));
+
+            ModelState.Remove(
+                nameof(Testimonial.Status));
+
+            ModelState.Remove(
+                nameof(Testimonial.CreatedAt));
+
+            if (!string.IsNullOrWhiteSpace(
+                testimonial.Content))
+            {
+                testimonial.Content =
+                    testimonial.Content.Trim();
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(testimonial);
             }
-
-            testimonial.Content =
-                testimonial.Content.Trim();
 
             testimonial.UserId =
                 userId;
