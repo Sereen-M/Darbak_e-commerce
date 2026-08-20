@@ -1,0 +1,211 @@
+﻿@model Darbak.ViewModels.AdminUserDetailsViewModel
+
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="container">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1 class="mb-1">
+                User Details
+            </h1>
+
+            <p class="text-muted mb-0">
+                View user information and manage their role.
+            </p>
+
+        </div>
+
+        <a asp-controller="AdminUsers"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            Back to Users
+        </a>
+
+    </div>
+
+    @if (TempData["UserSuccess"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["UserSuccess"]
+        </div>
+    }
+
+    @if (TempData["UserInfo"] != null)
+    {
+        <div class="alert alert-info">
+            @TempData["UserInfo"]
+        </div>
+    }
+
+    @if (TempData["UserError"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["UserError"]
+        </div>
+    }
+
+    <div class="row g-4">
+
+        <div class="col-lg-7">
+
+            <div class="card h-100">
+
+                <div class="card-header">
+                    User Information
+                </div>
+
+                <div class="card-body">
+
+                    <dl class="row mb-0">
+
+                        <dt class="col-sm-4">
+                            Full Name
+                        </dt>
+
+                        <dd class="col-sm-8">
+                            @(string.IsNullOrWhiteSpace(Model.FullName)
+                                ? "Not provided"
+                                : Model.FullName)
+                        </dd>
+
+                        <dt class="col-sm-4">
+                            Email
+                        </dt>
+
+                        <dd class="col-sm-8">
+                            @Model.Email
+                        </dd>
+
+                        <dt class="col-sm-4">
+                            Username
+                        </dt>
+
+                        <dd class="col-sm-8">
+                            @(string.IsNullOrWhiteSpace(Model.UserName)
+                                ? "Not provided"
+                                : Model.UserName)
+                        </dd>
+
+                        <dt class="col-sm-4">
+                            Current Role
+                        </dt>
+
+                        <dd class="col-sm-8">
+
+                            @if (!Model.Roles.Any())
+                            {
+                                <span class="badge bg-secondary">
+                                    No Role
+                                </span>
+                            }
+                            else
+                            {
+                                @foreach (var role in Model.Roles)
+                                {
+                                    @if (role == "Admin")
+                                    {
+                                        <span class="badge bg-danger me-1">
+                                            @role
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary me-1">
+                                            @role
+                                        </span>
+                                    }
+                                }
+                            }
+
+                        </dd>
+
+                    </dl>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-5">
+
+            <div class="card">
+
+                <div class="card-header">
+                    Change Role
+                </div>
+
+                <div class="card-body">
+
+                    <form asp-controller="AdminUsers"
+                          asp-action="ChangeRole"
+                          method="post">
+
+                        <input type="hidden"
+                               name="userId"
+                               value="@Model.Id" />
+
+                        <div class="mb-3">
+
+                            <label for="selectedRole"
+                                   class="form-label">
+                                Role
+                            </label>
+
+                            <select id="selectedRole"
+                                    name="selectedRole"
+                                    class="form-select">
+
+                                @if (Model.SelectedRole == "User")
+                                {
+                                    <option value="User"
+                                            selected>
+                                        User
+                                    </option>
+
+                                    <option value="Admin">
+                                        Admin
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="User">
+                                        User
+                                    </option>
+
+                                    <option value="Admin"
+                                            selected>
+                                        Admin
+                                    </option>
+                                }
+
+                            </select>
+
+                        </div>
+
+                        <div class="alert alert-warning">
+                            Changing a user's role changes
+                            their access permissions immediately.
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            Save Role
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
