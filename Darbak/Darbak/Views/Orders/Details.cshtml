@@ -11,7 +11,9 @@
     </div>
 }
 
-<h1>Order #@Model.Id</h1>
+<h1>
+    Order #@Model.Id
+</h1>
 
 <div class="card mb-4">
 
@@ -19,6 +21,7 @@
 
         <p>
             <strong>Order Date:</strong>
+
             @Model.OrderDate
             .ToLocalTime()
             .ToString("dd/MM/yyyy HH:mm")
@@ -28,14 +31,14 @@
             <strong>Status:</strong>
 
             @if (Model.Status ==
-                 Darbak.Models.Enums.OrderStatus.Processing)
+                Darbak.Models.Enums.OrderStatus.Processing)
             {
                 <span class="badge bg-warning text-dark">
                     Processing
                 </span>
             }
             else if (Model.Status ==
-                     Darbak.Models.Enums.OrderStatus.Completed)
+                Darbak.Models.Enums.OrderStatus.Completed)
             {
                 <span class="badge bg-success">
                     Completed
@@ -75,19 +78,34 @@
 
 </div>
 
-<h4>Products</h4>
+<h4>
+    Products
+</h4>
 
 <div class="table-responsive">
 
     <table class="table table-bordered">
 
         <thead>
+
             <tr>
-                <th>Product</th>
-                <th>Unit Price</th>
-                <th>Quantity</th>
-                <th>Total</th>
+                <th>
+                    Product
+                </th>
+
+                <th>
+                    Unit Price
+                </th>
+
+                <th>
+                    Quantity
+                </th>
+
+                <th>
+                    Total
+                </th>
             </tr>
+
         </thead>
 
         <tbody>
@@ -123,12 +141,22 @@
 
 </div>
 
-<h4>
+<h4 class="mb-4">
     Total:
     @Model.TotalAmount.ToString("0.00")
 </h4>
 
-<a asp-action="Index"
-   class="btn btn-secondary">
-    Back to My Orders
-</a>
+<div class="d-flex gap-2">
+
+    <a asp-action="Invoice"
+       asp-route-id="@Model.Id"
+       class="btn btn-primary">
+        View Invoice
+    </a>
+
+    <a asp-action="Index"
+       class="btn btn-secondary">
+        Back to My Orders
+    </a>
+
+</div>

@@ -1,0 +1,291 @@
+﻿@model Darbak.Models.Order
+
+@{
+    ViewData["Title"] = $"Invoice #{Model.Id}";
+}
+
+<div class="invoice-container">
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+
+        <div>
+            <h1 class="mb-1">
+                Darbak
+            </h1>
+
+            <p class="text-muted mb-0">
+                Auto Parts & Car Accessories
+            </p>
+        </div>
+
+        <div class="text-end">
+            <h2 class="mb-1">
+                Invoice
+            </h2>
+
+            <p class="mb-0">
+                <strong>Order #:</strong>
+                @Model.Id
+            </p>
+
+            <p class="mb-0">
+                <strong>Date:</strong>
+                @Model.OrderDate
+                .ToLocalTime()
+                .ToString("dd/MM/yyyy HH:mm")
+            </p>
+        </div>
+
+    </div>
+
+    <hr />
+
+    <div class="row mb-4">
+
+        <div class="col-md-6 mb-3">
+
+            <h5>
+                Customer Information
+            </h5>
+
+            <p class="mb-1">
+                <strong>Name:</strong>
+
+                @(string.IsNullOrWhiteSpace(
+                    Model.User?.FullName)
+                    ? "Customer"
+                    : Model.User.FullName)
+            </p>
+
+            <p class="mb-1">
+                <strong>Email:</strong>
+
+                @(Model.User?.Email
+                    ?? "Not available")
+            </p>
+
+            <p class="mb-1">
+                <strong>Phone:</strong>
+                @Model.PhoneNumber
+            </p>
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <h5>
+                Shipping Information
+            </h5>
+
+            <p class="mb-1">
+                <strong>Address:</strong>
+                @Model.ShippingAddress
+            </p>
+
+            <p class="mb-1">
+                <strong>City:</strong>
+                @Model.City
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="row mb-4">
+
+        <div class="col-md-6">
+
+            <p>
+                <strong>Order Status:</strong>
+
+                @if (Model.Status ==
+                    Darbak.Models.Enums.OrderStatus.Processing)
+                {
+                    <span class="badge bg-warning text-dark">
+                        Processing
+                    </span>
+                }
+                else if (Model.Status ==
+                    Darbak.Models.Enums.OrderStatus.Completed)
+                {
+                    <span class="badge bg-success">
+                        Completed
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">
+                        Cancelled
+                    </span>
+                }
+            </p>
+
+        </div>
+
+        <div class="col-md-6">
+
+            <p>
+                <strong>Payment Status:</strong>
+
+                @switch (Model.PaymentStatus)
+                {
+                    case Darbak.Models.Enums.PaymentStatus.Paid:
+                        <span class="badge bg-success">
+                            Paid
+                        </span>
+                        break;
+
+                    case Darbak.Models.Enums.PaymentStatus.Failed:
+                        <span class="badge bg-danger">
+                            Failed
+                        </span>
+                        break;
+
+                    case Darbak.Models.Enums.PaymentStatus.Refunded:
+                        <span class="badge bg-info text-dark">
+                            Refunded
+                        </span>
+                        break;
+
+                    default:
+                        <span class="badge bg-warning text-dark">
+                            Pending
+                        </span>
+                        break;
+                }
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table table-bordered align-middle">
+
+            <thead class="table-light">
+
+                <tr>
+                    <th>
+                        Product
+                    </th>
+
+                    <th class="text-end">
+                        Unit Price
+                    </th>
+
+                    <th class="text-center">
+                        Quantity
+                    </th>
+
+                    <th class="text-end">
+                        Line Total
+                    </th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @foreach (var item in Model.OrderItems)
+                {
+                    <tr>
+
+                        <td>
+                            @item.ProductName
+                        </td>
+
+                        <td class="text-end">
+                            @item.UnitPrice.ToString("0.00")
+                        </td>
+
+                        <td class="text-center">
+                            @item.Quantity
+                        </td>
+
+                        <td class="text-end">
+                            @((item.UnitPrice *
+                               item.Quantity)
+                                .ToString("0.00"))
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+            <tfoot>
+
+                <tr>
+                    <th colspan="3"
+                        class="text-end">
+                        Total
+                    </th>
+
+                    <th class="text-end">
+                        @Model.TotalAmount.ToString("0.00")
+                    </th>
+                </tr>
+
+            </tfoot>
+
+        </table>
+
+    </div>
+
+    <div class="d-flex gap-2 mt-4 no-print">
+
+        <button type="button"
+                class="btn btn-primary"
+                onclick="window.print();">
+            Print Invoice
+        </button>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="AdminDetails"
+               asp-route-id="@Model.Id"
+               class="btn btn-secondary">
+                Back to Order
+            </a>
+        }
+        else
+        {
+            <a asp-action="Details"
+               asp-route-id="@Model.Id"
+               class="btn btn-secondary">
+                Back to Order
+            </a>
+        }
+
+    </div>
+
+</div>
+
+<style>
+
+    @@media print {
+
+        header,
+        footer,
+        nav,
+        .no-print {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .invoice-container {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .table {
+            width: 100%;
+        }
+    }
+
+</style>
