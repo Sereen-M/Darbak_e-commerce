@@ -49,21 +49,7 @@ namespace Darbak.Data
                 .HasForeignKey(oi => oi.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // One PayPal order must never belong
-            // to more than one local Darbak order.
-            builder.Entity<Order>()
-                .HasIndex(o => o.PaymentReference)
-                .IsUnique()
-                .HasFilter(
-                    "[PaymentReference] IS NOT NULL");
-
-            // One successful PayPal capture must never
-            // be attached to more than one Darbak order.
-            builder.Entity<Order>()
-                .HasIndex(o => o.PaymentCaptureId)
-                .IsUnique()
-                .HasFilter(
-                    "[PaymentCaptureId] IS NOT NULL");
+            
         }
     }
 }

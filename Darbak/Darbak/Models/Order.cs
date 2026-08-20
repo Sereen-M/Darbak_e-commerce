@@ -40,15 +40,6 @@ namespace Darbak.Models
             PaymentStatus.Pending;
 
 
-        [StringLength(30)]
-        public string? PaymentProvider { get; set; }
-
-        [StringLength(100)]
-        public string? PaymentReference { get; set; }
-
-        [StringLength(100)]
-        public string? PaymentCaptureId { get; set; }
-
         public ICollection<OrderItem> OrderItems { get; set; } =
             new List<OrderItem>();
     }
