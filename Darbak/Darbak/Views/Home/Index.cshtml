@@ -1,8 +1,357 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Darbak.ViewModels.HomeViewModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+@if (TempData["CartSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["CartSuccess"]
+    </div>
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (TempData["CartError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["CartError"]
+    </div>
+}
+
+@if (TempData["WishlistSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["WishlistSuccess"]
+    </div>
+}
+
+@if (TempData["WishlistInfo"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["WishlistInfo"]
+    </div>
+}
+
+@if (TempData["WishlistError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["WishlistError"]
+    </div>
+}
+
+<section class="bg-light rounded-3 p-5 mb-5 text-center">
+    <div class="container">
+
+        <h1 class="display-5 fw-bold mb-3">
+            Welcome to Darbak
+        </h1>
+
+        <p class="lead text-muted mb-4">
+            Find auto parts and car accessories for your journey.
+        </p>
+
+        <a asp-controller="Catalog"
+           asp-action="Index"
+           class="btn btn-primary btn-lg">
+            Browse Products
+        </a>
+
+    </div>
+</section>
+
+<section class="mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2 class="mb-0">
+            Categories
+        </h2>
+
+        <a asp-controller="Catalog"
+           asp-action="Index"
+           class="btn btn-outline-primary">
+            View All Products
+        </a>
+
+    </div>
+
+    @if (!Model.Categories.Any())
+    {
+        <div class="alert alert-info">
+            No categories are available yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+
+            @foreach (var category in Model.Categories)
+            {
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card h-100">
+
+                        <div class="card-body">
+
+                            <h5 class="card-title">
+                                @category.Name
+                            </h5>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                category.Description))
+                            {
+                                <p class="card-text text-muted">
+                                    @category.Description
+                                </p>
+                            }
+
+                            <p class="mb-3">
+                                <strong>
+                                    @category.ProductCount
+                                </strong>
+                                active products
+                            </p>
+
+                            <a asp-controller="Catalog"
+                               asp-action="Index"
+                               asp-route-categoryId="@category.Id"
+                               class="btn btn-outline-primary">
+                                View Products
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</section>
+
+<section class="mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2 class="mb-0">
+            Latest Products
+        </h2>
+
+        <a asp-controller="Catalog"
+           asp-action="Index"
+           class="btn btn-outline-primary">
+            View Catalog
+        </a>
+
+    </div>
+
+    @if (!Model.LatestProducts.Any())
+    {
+        <div class="alert alert-info">
+            No products are available yet.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+
+            @foreach (var product in Model.LatestProducts)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+
+                    <div class="card h-100">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            product.MainImageUrl))
+                        {
+                            <img src="@product.MainImageUrl"
+                                 class="card-img-top"
+                                 alt="@product.Name"
+                                 style="height: 220px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center"
+                                 style="height: 220px;">
+
+                                <span class="text-muted">
+                                    No Image
+                                </span>
+
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+
+                            <h5 class="card-title">
+                                @product.Name
+                            </h5>
+
+                            <p class="text-muted mb-2">
+                                @product.CategoryName
+                            </p>
+
+                            <p class="fw-bold fs-5 mb-2">
+                                @product.Price.ToString("0.00")
+                            </p>
+
+                            <div class="mb-2">
+
+                                @if (product.ReviewCount > 0)
+                                {
+                                    <span>
+                                        @product.AverageRating.ToString("0.0")
+                                        / 5
+                                    </span>
+
+                                    <small class="text-muted">
+                                        (@product.ReviewCount reviews)
+                                    </small>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        No reviews yet
+                                    </span>
+                                }
+
+                            </div>
+
+                            <div class="mb-3">
+
+                                @if (product.StockQuantity > 0)
+                                {
+                                    <span class="badge bg-success">
+                                        In Stock
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">
+                                        Out of Stock
+                                    </span>
+                                }
+
+                            </div>
+
+                            <div class="mt-auto">
+
+                                <a asp-controller="Products"
+                                   asp-action="Details"
+                                   asp-route-id="@product.Id"
+                                   class="btn btn-outline-primary w-100 mb-2">
+                                    Details
+                                </a>
+
+                                @if (product.StockQuantity > 0)
+                                {
+                                    <form asp-controller="Cart"
+                                          asp-action="AddToCart"
+                                          method="post"
+                                          class="mb-2">
+
+                                        <input type="hidden"
+                                               name="productId"
+                                               value="@product.Id" />
+
+                                        <button type="submit"
+                                                class="btn btn-primary w-100">
+                                            Add to Cart
+                                        </button>
+
+                                    </form>
+                                }
+
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <form asp-controller="Wishlist"
+                                          asp-action="Add"
+                                          method="post">
+
+                                        <input type="hidden"
+                                               name="productId"
+                                               value="@product.Id" />
+
+                                        <button type="submit"
+                                                class="btn btn-outline-secondary w-100">
+                                            Add to Wishlist
+                                        </button>
+
+                                    </form>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</section>
+
+<section class="mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2 class="mb-0">
+            Customer Testimonials
+        </h2>
+
+        <a asp-controller="Testimonials"
+           asp-action="Index"
+           class="btn btn-outline-primary">
+            View All
+        </a>
+
+    </div>
+
+    @if (!Model.Testimonials.Any())
+    {
+        <div class="alert alert-info">
+            No testimonials are available yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+
+            @foreach (var testimonial in Model.Testimonials)
+            {
+                <div class="col-md-4">
+
+                    <div class="card h-100">
+
+                        <div class="card-body">
+
+                            <p class="card-text">
+                                "@testimonial.Content"
+                            </p>
+
+                            <hr />
+
+                            <strong>
+                                @testimonial.UserName
+                            </strong>
+
+                            <div class="text-muted small mt-1">
+                                @testimonial.CreatedAt.ToLocalTime()
+                                .ToString("dd MMM yyyy")
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</section>
