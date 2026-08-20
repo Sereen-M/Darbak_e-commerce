@@ -1,5 +1,6 @@
 @page
 @model DeletePersonalDataModel
+
 @{
     ViewData["Title"] = "Delete Personal Data";
     ViewData["ActivePage"] = ManageNavPages.PersonalData;
@@ -7,27 +8,65 @@
 
 <h3>@ViewData["Title"]</h3>
 
-<div class="alert alert-warning" role="alert">
-    <p>
-        <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+<div class="alert alert-warning"
+     role="alert">
+
+    <p class="mb-2">
+        <strong>
+            Deleting your account is permanent
+            and cannot be undone.
+        </strong>
     </p>
+
+    <p class="mb-0">
+        Accounts with existing order history
+        cannot be deleted because order records
+        must be preserved.
+    </p>
+
 </div>
 
 <div>
-    <form id="delete-user" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+    <form id="delete-user"
+          method="post">
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"
+             role="alert">
+        </div>
+
         @if (Model.RequirePassword)
         {
             <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Please enter your password." />
-                <label asp-for="Input.Password" class="form-label"></label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
+
+                <input asp-for="Input.Password"
+                       class="form-control"
+                       autocomplete="current-password"
+                       aria-required="true"
+                       placeholder="Please enter your password." />
+
+                <label asp-for="Input.Password"
+                       class="form-label">
+                </label>
+
+                <span asp-validation-for="Input.Password"
+                      class="text-danger">
+                </span>
+
             </div>
         }
-        <button class="w-100 btn btn-lg btn-danger" type="submit">Delete data and close my account</button>
+
+        <button class="w-100 btn btn-lg btn-danger"
+                type="submit">
+            Delete data and close my account
+        </button>
+
     </form>
+
 </div>
 
-@section Scripts {
+@section Scripts
+{
     <partial name="_ValidationScriptsPartial" />
 }

@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Darbak.Data;
 using Darbak.Models;
 using Darbak.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -11,18 +12,26 @@ namespace Darbak.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminUsersController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<ApplicationUser>
+            _userManager;
+
+        private readonly ApplicationDbContext
+            _context;
 
         public AdminUsersController(
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context)
         {
-            _userManager = userManager;
+            _userManager =
+                userManager;
+
+            _context =
+                context;
         }
 
-        // =========================
+        // ==========================================
         // USERS LIST
-        // =========================
-
+        // ==========================================
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -45,7 +54,8 @@ namespace Darbak.Controllers
                 userItems.Add(
                     new AdminUserListItemViewModel
                     {
-                        Id = user.Id,
+                        Id =
+                            user.Id,
 
                         FullName =
                             user.FullName,
@@ -62,16 +72,16 @@ namespace Darbak.Controllers
             var viewModel =
                 new AdminUsersViewModel
                 {
-                    Users = userItems
+                    Users =
+                        userItems
                 };
 
             return View(viewModel);
         }
 
-        // =========================
+        // ==========================================
         // USER DETAILS
-        // =========================
-
+        // ==========================================
         [HttpGet]
         public async Task<IActionResult> Details(
             string id)
@@ -125,17 +135,17 @@ namespace Darbak.Controllers
             return View(viewModel);
         }
 
-        // =========================
+        // ==========================================
         // CHANGE ROLE
-        // =========================
-
+        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangeRole(
             string userId,
             string selectedRole)
         {
-            if (string.IsNullOrWhiteSpace(userId))
+            if (string.IsNullOrWhiteSpace(
+                    userId))
             {
                 return BadRequest();
             }
@@ -148,7 +158,10 @@ namespace Darbak.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id = userId });
+                    new
+                    {
+                        id = userId
+                    });
             }
 
             var user =
@@ -168,8 +181,8 @@ namespace Darbak.Controllers
                 await _userManager
                     .GetRolesAsync(user);
 
-            // Prevent the current Admin
-            // from removing Admin from himself.
+            // Never allow the current Admin
+            // to remove Admin from themselves.
             if (user.Id == currentUserId &&
                 currentRoles.Contains("Admin") &&
                 selectedRole != "Admin")
@@ -179,74 +192,120 @@ namespace Darbak.Controllers
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id = userId });
+                    new
+                    {
+                        id = userId
+                    });
             }
 
-            // Nothing to change
+            // Exactly the requested role already exists.
             if (currentRoles.Count == 1 &&
-                currentRoles.Contains(selectedRole))
+                currentRoles.Contains(
+                    selectedRole))
             {
                 TempData["UserInfo"] =
                     "The user already has this role.";
 
                 return RedirectToAction(
                     nameof(Details),
-                    new { id = userId });
+                    new
+                    {
+                        id = userId
+                    });
             }
 
-            // Add the new role first.
-            if (!currentRoles.Contains(selectedRole))
+            await using var transaction =
+                await _context.Database
+                    .BeginTransactionAsync();
+
+            try
             {
-                var addResult =
-                    await _userManager
-                        .AddToRoleAsync(
-                            user,
-                            selectedRole);
-
-                if (!addResult.Succeeded)
+                // Add the requested role first.
+                if (!currentRoles.Contains(
+                        selectedRole))
                 {
-                    TempData["UserError"] =
-                        string.Join(
-                            " ",
-                            addResult.Errors
-                                .Select(e =>
-                                    e.Description));
+                    var addResult =
+                        await _userManager
+                            .AddToRoleAsync(
+                                user,
+                                selectedRole);
 
-                    return RedirectToAction(
-                        nameof(Details),
-                        new { id = userId });
+                    if (!addResult.Succeeded)
+                    {
+                        await transaction
+                            .RollbackAsync();
+
+                        TempData["UserError"] =
+                            string.Join(
+                                " ",
+                                addResult.Errors
+                                    .Select(e =>
+                                        e.Description));
+
+                        return RedirectToAction(
+                            nameof(Details),
+                            new
+                            {
+                                id = userId
+                            });
+                    }
                 }
+
+                // Only Admin/User are managed by this
+                // controller. Remove all roles except
+                // the selected one.
+                var rolesToRemove =
+                    currentRoles
+                        .Where(role =>
+                            role != selectedRole)
+                        .ToList();
+
+                if (rolesToRemove.Any())
+                {
+                    var removeResult =
+                        await _userManager
+                            .RemoveFromRolesAsync(
+                                user,
+                                rolesToRemove);
+
+                    if (!removeResult.Succeeded)
+                    {
+                        await transaction
+                            .RollbackAsync();
+
+                        TempData["UserError"] =
+                            string.Join(
+                                " ",
+                                removeResult.Errors
+                                    .Select(e =>
+                                        e.Description));
+
+                        return RedirectToAction(
+                            nameof(Details),
+                            new
+                            {
+                                id = userId
+                            });
+                    }
+                }
+
+                await transaction
+                    .CommitAsync();
             }
-
-            // Remove other roles only after
-            // the new role was added successfully.
-            var rolesToRemove =
-                currentRoles
-                    .Where(role =>
-                        role != selectedRole)
-                    .ToList();
-
-            if (rolesToRemove.Any())
+            catch
             {
-                var removeResult =
-                    await _userManager
-                        .RemoveFromRolesAsync(
-                            user,
-                            rolesToRemove);
+                await transaction
+                    .RollbackAsync();
 
-                if (!removeResult.Succeeded)
-                {
-                    TempData["UserError"] =
-                        string.Join(
-                            " ",
-                            removeResult.Errors
-                                .Select(e =>
-                                    e.Description));
+                TempData["UserError"] =
+                    "The user role could not be changed. No changes were saved.";
 
-                    return RedirectToAction(
-                        nameof(Details),
-                        new { id = userId });
-                }
+                return RedirectToAction(
+                    nameof(Details),
+                    new
+                    {
+                        id = userId
+                    });
             }
 
             TempData["UserSuccess"] =
@@ -254,7 +313,10 @@ namespace Darbak.Controllers
 
             return RedirectToAction(
                 nameof(Details),
-                new { id = userId });
+                new
+                {
+                    id = userId
+                });
         }
     }
 }

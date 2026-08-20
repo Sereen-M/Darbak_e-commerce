@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Darbak.Data
 {
-    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public class ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options)
         : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<Category> Categories { get; set; }
@@ -19,13 +20,38 @@ namespace Darbak.Data
 
         public DbSet<WishlistItem> WishlistItems { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(
+            ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
+
+
             builder.Entity<WishlistItem>()
-                .HasIndex(w => new { w.UserId, w.ProductId })
+                .HasIndex(w => new
+                {
+                    w.UserId,
+                    w.ProductId
+                })
                 .IsUnique();
+
+
+            builder.Entity<Category>()
+                .HasIndex(c => c.Name)
+                .IsUnique();
+
+           
+            builder.Entity<Order>()
+                .HasOne(o => o.User)
+                .WithMany(u => u.Orders)
+                .HasForeignKey(o => o.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<OrderItem>()
+                .HasOne(oi => oi.Product)
+                .WithMany(p => p.OrderItems)
+                .HasForeignKey(oi => oi.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

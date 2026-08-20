@@ -157,47 +157,51 @@
 
 <h4>Order Items</h4>
 
-<table class="table">
+<div class="table-responsive">
 
-    <thead>
-        <tr>
-            <th>Product</th>
-            <th>Unit Price</th>
-            <th>Quantity</th>
-            <th>Total</th>
-        </tr>
-    </thead>
+    <table class="table">
 
-    <tbody>
-
-        @foreach (var item in Model.OrderItems)
-        {
+        <thead>
             <tr>
-
-                <td>
-                    @item.Product.Name
-                </td>
-
-                <td>
-                    @item.UnitPrice.ToString("0.00")
-                </td>
-
-                <td>
-                    @item.Quantity
-                </td>
-
-                <td>
-                    @((item.UnitPrice *
-                        item.Quantity)
-                        .ToString("0.00"))
-                </td>
-
+                <th>Product</th>
+                <th>Unit Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
             </tr>
-        }
+        </thead>
 
-    </tbody>
+        <tbody>
 
-</table>
+            @foreach (var item in Model.OrderItems)
+            {
+                <tr>
+
+                    <td>
+                        @item.ProductName
+                    </td>
+
+                    <td>
+                        @item.UnitPrice.ToString("0.00")
+                    </td>
+
+                    <td>
+                        @item.Quantity
+                    </td>
+
+                    <td>
+                        @((item.UnitPrice *
+                           item.Quantity)
+                            .ToString("0.00"))
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>
 
 <h4>
     Order Total:

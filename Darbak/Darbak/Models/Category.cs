@@ -1,7 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using System.ComponentModel.DataAnnotations;
-using Darbak.Models.Enums;
-
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Darbak.Models
 {
@@ -16,6 +13,10 @@ namespace Darbak.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public ICollection<Product> Products { get; set; } = new List<Product>();
+        public ICollection<Product> Products
+        {
+            get;
+            set;
+        } = new List<Product>();
     }
 }

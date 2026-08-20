@@ -1,4 +1,5 @@
 ﻿using Darbak.Data;
+using Darbak.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,47 +11,77 @@ namespace Darbak.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public CategoriesController(ApplicationDbContext context)
+        public CategoriesController(
+            ApplicationDbContext context)
         {
             _context = context;
         }
 
+        // ==========================================
         // INDEX
+        // ==========================================
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var categories = await _context.Categories
-                .OrderBy(c => c.Name)
-                .ToListAsync();
+            var categories =
+                await _context.Categories
+                    .AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
 
             return View(categories);
         }
 
+        // ==========================================
         // CREATE GET
+        // ==========================================
         [HttpGet]
         public IActionResult Create()
         {
             return View();
         }
 
-
+        // ==========================================
+        // CREATE POST
+        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Category category)
+        public async Task<IActionResult> Create(
+            [Bind("Name,Description")]
+            Category category)
         {
-            if (!string.IsNullOrWhiteSpace(category.Name))
-            {
-                category.Name = category.Name.Trim();
+            category.Name =
+                category.Name?.Trim()
+                ?? string.Empty;
 
-                var nameExists = await _context.Categories
-                    .AnyAsync(c => c.Name == category.Name);
+            category.Description =
+                string.IsNullOrWhiteSpace(
+                    category.Description)
+                    ? null
+                    : category.Description.Trim();
+
+            if (string.IsNullOrWhiteSpace(
+                    category.Name))
+            {
+                ModelState.AddModelError(
+                    nameof(Category.Name),
+                    "Category name is required.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                    category.Name))
+            {
+                var nameExists =
+                    await _context.Categories
+                        .AsNoTracking()
+                        .AnyAsync(c =>
+                            c.Name == category.Name);
 
                 if (nameExists)
                 {
                     ModelState.AddModelError(
                         nameof(Category.Name),
-                        "A category with this name already exists."
-                    );
+                        "A category with this name already exists.");
                 }
             }
 
@@ -59,24 +90,36 @@ namespace Darbak.Controllers
                 return View(category);
             }
 
-            category.Description =
-                string.IsNullOrWhiteSpace(category.Description)
-                    ? null
-                    : category.Description.Trim();
+            try
+            {
+                _context.Categories.Add(
+                    category);
 
-            _context.Categories.Add(category);
+                await _context
+                    .SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(
+                    nameof(Category.Name),
+                    "The category could not be saved. A category with this name may already exist.");
 
-            await _context.SaveChangesAsync();
+                return View(category);
+            }
 
             TempData["CategorySuccess"] =
                 "Category created successfully.";
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(
+                nameof(Index));
         }
 
+        // ==========================================
         // EDIT GET
+        // ==========================================
         [HttpGet]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(
+            int? id)
         {
             if (id == null)
             {
@@ -84,7 +127,10 @@ namespace Darbak.Controllers
             }
 
             var category =
-                await _context.Categories.FindAsync(id);
+                await _context.Categories
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c =>
+                        c.Id == id.Value);
 
             if (category == null)
             {
@@ -94,11 +140,14 @@ namespace Darbak.Controllers
             return View(category);
         }
 
+        // ==========================================
         // EDIT POST
+        // ==========================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
             int id,
+            [Bind("Id,Name,Description")]
             Category category)
         {
             if (id != category.Id)
@@ -106,20 +155,39 @@ namespace Darbak.Controllers
                 return NotFound();
             }
 
-            if (!string.IsNullOrWhiteSpace(category.Name))
+            category.Name =
+                category.Name?.Trim()
+                ?? string.Empty;
+
+            category.Description =
+                string.IsNullOrWhiteSpace(
+                    category.Description)
+                    ? null
+                    : category.Description.Trim();
+
+            if (string.IsNullOrWhiteSpace(
+                    category.Name))
+            {
+                ModelState.AddModelError(
+                    nameof(Category.Name),
+                    "Category name is required.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(
+                    category.Name))
             {
                 var nameExists =
                     await _context.Categories
+                        .AsNoTracking()
                         .AnyAsync(c =>
-                            c.Name == category.Name &&
-                            c.Id != category.Id);
+                            c.Id != category.Id &&
+                            c.Name == category.Name);
 
                 if (nameExists)
                 {
                     ModelState.AddModelError(
                         nameof(Category.Name),
-                        "A category with this name already exists."
-                    );
+                        "A category with this name already exists.");
                 }
             }
 
@@ -129,7 +197,9 @@ namespace Darbak.Controllers
             }
 
             var existingCategory =
-                await _context.Categories.FindAsync(id);
+                await _context.Categories
+                    .FirstOrDefaultAsync(c =>
+                        c.Id == id);
 
             if (existingCategory == null)
             {
@@ -137,24 +207,38 @@ namespace Darbak.Controllers
             }
 
             existingCategory.Name =
-                category.Name.Trim();
+                category.Name;
 
             existingCategory.Description =
-                string.IsNullOrWhiteSpace(category.Description)
-                    ? null
-                    : category.Description.Trim();
+                category.Description;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context
+                    .SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(
+                    nameof(Category.Name),
+                    "The category could not be updated. A category with this name may already exist.");
+
+                return View(category);
+            }
 
             TempData["CategorySuccess"] =
                 "Category updated successfully.";
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(
+                nameof(Index));
         }
 
+        // ==========================================
         // DELETE GET
+        // ==========================================
         [HttpGet]
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(
+            int? id)
         {
             if (id == null)
             {
@@ -163,9 +247,10 @@ namespace Darbak.Controllers
 
             var category =
                 await _context.Categories
+                    .AsNoTracking()
                     .Include(c => c.Products)
                     .FirstOrDefaultAsync(c =>
-                        c.Id == id);
+                        c.Id == id.Value);
 
             if (category == null)
             {
@@ -175,11 +260,14 @@ namespace Darbak.Controllers
             return View(category);
         }
 
+        // ==========================================
         // DELETE POST
-        [HttpPost, ActionName("Delete")]
+        // ==========================================
+        [HttpPost]
+        [ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(
-            int id)
+        public async Task<IActionResult>
+            DeleteConfirmed(int id)
         {
             var category =
                 await _context.Categories
@@ -197,16 +285,32 @@ namespace Darbak.Controllers
                 TempData["CategoryError"] =
                     "This category cannot be deleted because it contains products.";
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(
+                    nameof(Index));
             }
 
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Categories.Remove(
+                    category);
+
+                await _context
+                    .SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["CategoryError"] =
+                    "This category could not be deleted because it is being used by other data.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
 
             TempData["CategorySuccess"] =
                 "Category deleted successfully.";
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(
+                nameof(Index));
         }
     }
 }

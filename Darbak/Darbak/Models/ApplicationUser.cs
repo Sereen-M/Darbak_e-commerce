@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Darbak.Models.Enums;
 
 namespace Darbak.Models
 {

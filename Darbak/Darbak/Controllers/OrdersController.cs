@@ -292,19 +292,22 @@ namespace Darbak.Controllers
                         products[cartItem.ProductId];
 
                     var orderItem =
-                        new OrderItem
-                        {
-                            ProductId =
-                                product.Id,
+    new OrderItem
+    {
+        ProductId =
+            product.Id,
 
-                            Quantity =
-                                cartItem.Quantity,
+        
+        ProductName =
+            product.Name,
 
-                            // Always take the current
-                            // database price.
-                            UnitPrice =
-                                product.Price
-                        };
+        Quantity =
+            cartItem.Quantity,
+
+       
+        UnitPrice =
+            product.Price
+    };
 
                     order.OrderItems.Add(
                         orderItem);

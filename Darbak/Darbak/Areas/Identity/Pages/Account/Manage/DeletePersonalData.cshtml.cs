@@ -1,14 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
+using Darbak.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
-using Darbak.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Darbak.Areas.Identity.Pages.Account.Manage;
 
@@ -16,86 +11,133 @@ public class DeletePersonalDataModel : PageModel
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<DeletePersonalDataModel> _logger;
 
     public DeletePersonalDataModel(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+        ApplicationDbContext context,
         ILogger<DeletePersonalDataModel> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _context = context;
         _logger = logger;
     }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [BindProperty]
     public InputModel Input { get; set; } = default!;
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     public class InputModel
     {
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; } = default!;
     }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     public bool RequirePassword { get; set; }
 
     public async Task<IActionResult> OnGet()
     {
-        var user = await _userManager.GetUserAsync(User);
+        var user =
+            await _userManager.GetUserAsync(User);
+
         if (user == null)
         {
-            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            return NotFound(
+                $"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
 
-        RequirePassword = await _userManager.HasPasswordAsync(user);
+        RequirePassword =
+            await _userManager.HasPasswordAsync(user);
+
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        var user = await _userManager.GetUserAsync(User);
+        var user =
+            await _userManager.GetUserAsync(User);
+
         if (user == null)
         {
-            return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            return NotFound(
+                $"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
         }
 
-        RequirePassword = await _userManager.HasPasswordAsync(user);
+        RequirePassword =
+            await _userManager.HasPasswordAsync(user);
+
         if (RequirePassword)
         {
-            if (!await _userManager.CheckPasswordAsync(user, Input.Password))
+            if (string.IsNullOrWhiteSpace(Input.Password) ||
+                !await _userManager.CheckPasswordAsync(
+                    user,
+                    Input.Password))
             {
-                ModelState.AddModelError(string.Empty, "Incorrect password.");
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Incorrect password.");
+
                 return Page();
             }
         }
 
-        var result = await _userManager.DeleteAsync(user);
-        var userId = await _userManager.GetUserIdAsync(user);
-        if (!result.Succeeded)
+        var hasOrders =
+            await _context.Orders
+                .AsNoTracking()
+                .AnyAsync(o =>
+                    o.UserId == user.Id);
+
+        if (hasOrders)
         {
-            throw new InvalidOperationException($"Unexpected error occurred deleting user.");
+            ModelState.AddModelError(
+                string.Empty,
+                "Your account cannot be deleted because it has order history that must be preserved.");
+
+            return Page();
+        }
+
+        var userId = user.Id;
+
+        try
+        {
+            var result =
+                await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error
+                         in result.Errors)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        error.Description);
+                }
+
+                return Page();
+            }
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "User with ID '{UserId}' could not be deleted because related data prevents deletion.",
+                userId);
+
+            ModelState.AddModelError(
+                string.Empty,
+                "Your account cannot be deleted because it contains data that must be preserved.");
+
+            return Page();
         }
 
         await _signInManager.SignOutAsync();
 
-        _logger.LogInformation("User with ID '{UserId}' deleted themselves.", userId);
+        _logger.LogInformation(
+            "User with ID '{UserId}' deleted their account.",
+            userId);
 
         return Redirect("~/");
     }
