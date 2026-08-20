@@ -18,6 +18,10 @@ namespace Darbak.Controllers
             _context = context;
         }
 
+        // ==========================================
+        // HOME
+        // ==========================================
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var latestProducts =
@@ -45,7 +49,8 @@ namespace Darbak.Controllers
                                 p.Images
                                     .OrderByDescending(i =>
                                         i.IsMain)
-                                    .ThenBy(i => i.Id)
+                                    .ThenBy(i =>
+                                        i.Id)
                                     .Select(i =>
                                         i.ImageUrl)
                                     .FirstOrDefault(),
@@ -122,6 +127,49 @@ namespace Darbak.Controllers
                     Categories =
                         categories,
 
+                    Testimonials =
+                        testimonials
+                };
+
+            return View(viewModel);
+        }
+
+        // ==========================================
+        // ABOUT
+        // ==========================================
+        [HttpGet]
+        public async Task<IActionResult> About()
+        {
+            var testimonials =
+                await _context.Testimonials
+                    .AsNoTracking()
+                    .Where(t =>
+                        t.Status ==
+                        ApprovalStatus.Approved)
+                    .OrderByDescending(t =>
+                        t.CreatedAt)
+                    .Select(t =>
+                        new HomeTestimonialViewModel
+                        {
+                            Id =
+                                t.Id,
+
+                            Content =
+                                t.Content,
+
+                            UserName =
+                                t.User.FullName
+                                ?? t.User.UserName
+                                ?? "User",
+
+                            CreatedAt =
+                                t.CreatedAt
+                        })
+                    .ToListAsync();
+
+            var viewModel =
+                new HomeViewModel
+                {
                     Testimonials =
                         testimonials
                 };
