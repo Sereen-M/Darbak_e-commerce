@@ -323,18 +323,83 @@
                             </li>
                         }
 
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li>
+                      @if (User.IsInRole("Admin"))
+{
+    <li class="nav-item dropdown">
 
-                                <a asp-controller="AdminDashboard"
-                                   asp-action="Index"
-                                   class="text-decoration-none">
-                                    Admin Dashboard
-                                </a>
+        <a class="nav-link dropdown-toggle"
+           href="#"
+           role="button"
+           data-bs-toggle="dropdown"
+           aria-expanded="false">
+            Admin
+        </a>
 
-                            </li>
-                        }
+        <ul class="dropdown-menu">
+
+            <li>
+                <a class="dropdown-item"
+                   asp-controller="AdminDashboard"
+                   asp-action="Index">
+                    Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item"
+                   asp-controller="AdminUsers"
+                   asp-action="Index">
+                    Users
+                </a>
+            </li>
+
+            <li>
+                <hr class="dropdown-divider" />
+            </li>
+
+            <li>
+                <a class="dropdown-item"
+                   asp-controller="Categories"
+                   asp-action="Index">
+                    Categories
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item"
+                   asp-controller="Products"
+                   asp-action="Index">
+                    Products
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item"
+                   asp-controller="Orders"
+                   asp-action="AdminIndex">
+                    Orders
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item"
+                   asp-controller="Reviews"
+                   asp-action="Index">
+                    Reviews
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item"
+                   asp-controller="Testimonials"
+                   asp-action="AdminIndex">
+                    Testimonials
+                </a>
+            </li>
+
+        </ul>
+    </li>
+}
 
                     </ul>
 
