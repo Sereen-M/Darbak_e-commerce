@@ -2,6 +2,7 @@
 using Darbak.Models;
 using Darbak.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,11 +12,17 @@ namespace Darbak.Controllers
     public class ProductImagesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
+
+        private const long MaxImageSize =
+            5 * 1024 * 1024;
 
         public ProductImagesController(
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         // INDEX
@@ -26,8 +33,7 @@ namespace Darbak.Controllers
             var product = await _context.Products
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync(
-                    p => p.Id == productId
-                );
+                    p => p.Id == productId);
 
             if (product == null)
             {
@@ -50,7 +56,8 @@ namespace Darbak.Controllers
                 return NotFound();
             }
 
-            ViewBag.ProductName = product.Name;
+            ViewBag.ProductName =
+                product.Name;
 
             var viewModel =
                 new ProductImageCreateViewModel
@@ -65,51 +72,36 @@ namespace Darbak.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            ProductImageCreateViewModel viewModel)
+            ProductImageCreateViewModel viewModel,
+            IFormFile? imageFile)
         {
             var product = await _context.Products
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync(
-                    p => p.Id == viewModel.ProductId
-                );
+                    p => p.Id == viewModel.ProductId);
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            if (!string.IsNullOrWhiteSpace(
-                    viewModel.ImageUrl))
+            /*
+             * ImageUrl is no longer entered by the user.
+             * It will be generated after securely saving
+             * the uploaded image.
+             */
+            ModelState.Remove(
+                nameof(viewModel.ImageUrl));
+
+            var validationError =
+                await ValidateImageAsync(
+                    imageFile);
+
+            if (validationError != null)
             {
-                viewModel.ImageUrl =
-                    viewModel.ImageUrl.Trim();
-
-                if (!IsValidImageUrl(
-                        viewModel.ImageUrl))
-                {
-                    ModelState.AddModelError(
-                        nameof(viewModel.ImageUrl),
-                        "Enter a valid HTTP/HTTPS URL or a local path beginning with /."
-                    );
-                }
-                else
-                {
-                    var imageExists =
-                        await _context.ProductImages
-                            .AnyAsync(i =>
-                                i.ProductId ==
-                                    viewModel.ProductId &&
-                                i.ImageUrl ==
-                                    viewModel.ImageUrl);
-
-                    if (imageExists)
-                    {
-                        ModelState.AddModelError(
-                            nameof(viewModel.ImageUrl),
-                            "This image has already been added to the product."
-                        );
-                    }
-                }
+                ModelState.AddModelError(
+                    "imageFile",
+                    validationError);
             }
 
             if (!ModelState.IsValid)
@@ -120,53 +112,109 @@ namespace Darbak.Controllers
                 return View(viewModel);
             }
 
-            var isFirstImage =
-                !product.Images.Any();
+            var extension =
+                Path.GetExtension(
+                        imageFile!.FileName)
+                    .ToLowerInvariant();
 
-            var shouldBeMain =
-                viewModel.IsMain ||
-                isFirstImage;
+            var fileName =
+                $"{Guid.NewGuid():N}{extension}";
 
-            if (shouldBeMain)
+            var webRootPath =
+                _environment.WebRootPath
+                ?? Path.Combine(
+                    _environment.ContentRootPath,
+                    "wwwroot");
+
+            var uploadDirectory =
+                Path.Combine(
+                    webRootPath,
+                    "images",
+                    "products");
+
+            Directory.CreateDirectory(
+                uploadDirectory);
+
+            var physicalPath =
+                Path.Combine(
+                    uploadDirectory,
+                    fileName);
+
+            var relativePath =
+                $"/images/products/{fileName}";
+
+            try
             {
-                foreach (var existingImage
-                         in product.Images)
+                await using (
+                    var fileStream =
+                    new FileStream(
+                        physicalPath,
+                        FileMode.CreateNew,
+                        FileAccess.Write,
+                        FileShare.None))
                 {
-                    existingImage.IsMain = false;
+                    await imageFile.CopyToAsync(
+                        fileStream);
                 }
-            }
 
-            var productImage =
-                new ProductImage
+                var isFirstImage =
+                    !product.Images.Any();
+
+                var shouldBeMain =
+                    viewModel.IsMain ||
+                    isFirstImage;
+
+                if (shouldBeMain)
                 {
-                    ProductId =
-                        product.Id,
+                    foreach (var existingImage
+                             in product.Images)
+                    {
+                        existingImage.IsMain =
+                            false;
+                    }
+                }
 
-                    ImageUrl =
-                        viewModel.ImageUrl.Trim(),
+                var productImage =
+                    new ProductImage
+                    {
+                        ProductId =
+                            product.Id,
 
-                    IsMain =
-                        shouldBeMain
-                };
+                        ImageUrl =
+                            relativePath,
 
-            _context.ProductImages.Add(
-                productImage
-            );
+                        IsMain =
+                            shouldBeMain
+                    };
 
-            await _context.SaveChangesAsync();
+                _context.ProductImages.Add(
+                    productImage);
 
-            TempData["ImageSuccess"] =
-                isFirstImage
-                    ? "Image added successfully and set as the main image."
-                    : "Image added successfully.";
+                await _context.SaveChangesAsync();
+
+                TempData["ImageSuccess"] =
+                    isFirstImage
+                        ? "Image uploaded successfully and set as the main image."
+                        : "Image uploaded successfully.";
+            }
+            catch
+            {
+                if (System.IO.File.Exists(
+                        physicalPath))
+                {
+                    System.IO.File.Delete(
+                        physicalPath);
+                }
+
+                throw;
+            }
 
             return RedirectToAction(
                 nameof(Index),
                 new
                 {
                     productId = product.Id
-                }
-            );
+                });
         }
 
         // SET MAIN
@@ -178,8 +226,7 @@ namespace Darbak.Controllers
             var image =
                 await _context.ProductImages
                     .FirstOrDefaultAsync(
-                        i => i.Id == id
-                    );
+                        i => i.Id == id);
 
             if (image == null)
             {
@@ -196,8 +243,7 @@ namespace Darbak.Controllers
                     new
                     {
                         productId
-                    }
-                );
+                    });
             }
 
             var productImages =
@@ -225,8 +271,7 @@ namespace Darbak.Controllers
                 new
                 {
                     productId
-                }
-            );
+                });
         }
 
         // DELETE
@@ -238,8 +283,7 @@ namespace Darbak.Controllers
             var image =
                 await _context.ProductImages
                     .FirstOrDefaultAsync(
-                        i => i.Id == id
-                    );
+                        i => i.Id == id);
 
             if (image == null)
             {
@@ -252,9 +296,11 @@ namespace Darbak.Controllers
             var wasMain =
                 image.IsMain;
 
+            var imageUrl =
+                image.ImageUrl;
+
             _context.ProductImages.Remove(
-                image
-            );
+                image);
 
             if (wasMain)
             {
@@ -262,7 +308,7 @@ namespace Darbak.Controllers
                     await _context.ProductImages
                         .Where(i =>
                             i.ProductId ==
-                                productId &&
+                            productId &&
                             i.Id != id)
                         .OrderBy(i => i.Id)
                         .FirstOrDefaultAsync();
@@ -276,6 +322,9 @@ namespace Darbak.Controllers
 
             await _context.SaveChangesAsync();
 
+            DeleteLocalImageFile(
+                imageUrl);
+
             TempData["ImageSuccess"] =
                 "Image deleted successfully.";
 
@@ -284,41 +333,180 @@ namespace Darbak.Controllers
                 new
                 {
                     productId
-                }
-            );
+                });
         }
 
-        private static bool IsValidImageUrl(
+        private static async Task<string?>
+            ValidateImageAsync(
+                IFormFile? imageFile)
+        {
+            if (imageFile == null ||
+                imageFile.Length == 0)
+            {
+                return "Please select an image.";
+            }
+
+            if (imageFile.Length >
+                MaxImageSize)
+            {
+                return
+                    "The image must not exceed 5 MB.";
+            }
+
+            var extension =
+                Path.GetExtension(
+                        imageFile.FileName)
+                    .ToLowerInvariant();
+
+            var expectedContentType =
+                extension switch
+                {
+                    ".jpg" =>
+                        "image/jpeg",
+
+                    ".jpeg" =>
+                        "image/jpeg",
+
+                    ".png" =>
+                        "image/png",
+
+                    ".webp" =>
+                        "image/webp",
+
+                    _ =>
+                        null
+                };
+
+            if (expectedContentType == null)
+            {
+                return
+                    "Only JPG, JPEG, PNG, and WebP images are allowed.";
+            }
+
+            if (!string.Equals(
+                    imageFile.ContentType,
+                    expectedContentType,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return
+                    "The uploaded file type does not match its extension.";
+            }
+
+            if (!await HasValidImageSignatureAsync(
+                    imageFile,
+                    extension))
+            {
+                return
+                    "The selected file is not a valid image.";
+            }
+
+            return null;
+        }
+
+        private static async Task<bool>
+            HasValidImageSignatureAsync(
+                IFormFile imageFile,
+                string extension)
+        {
+            var header =
+                new byte[12];
+
+            await using var stream =
+                imageFile.OpenReadStream();
+
+            var bytesRead =
+                await stream.ReadAsync(
+                    header.AsMemory(
+                        0,
+                        header.Length));
+
+            if (extension == ".jpg" ||
+                extension == ".jpeg")
+            {
+                return bytesRead >= 3 &&
+                       header[0] == 0xFF &&
+                       header[1] == 0xD8 &&
+                       header[2] == 0xFF;
+            }
+
+            if (extension == ".png")
+            {
+                return bytesRead >= 8 &&
+                       header[0] == 0x89 &&
+                       header[1] == 0x50 &&
+                       header[2] == 0x4E &&
+                       header[3] == 0x47 &&
+                       header[4] == 0x0D &&
+                       header[5] == 0x0A &&
+                       header[6] == 0x1A &&
+                       header[7] == 0x0A;
+            }
+
+            if (extension == ".webp")
+            {
+                return bytesRead >= 12 &&
+                       header[0] == 0x52 &&
+                       header[1] == 0x49 &&
+                       header[2] == 0x46 &&
+                       header[3] == 0x46 &&
+                       header[8] == 0x57 &&
+                       header[9] == 0x45 &&
+                       header[10] == 0x42 &&
+                       header[11] == 0x50;
+            }
+
+            return false;
+        }
+
+        private void DeleteLocalImageFile(
             string imageUrl)
         {
             if (string.IsNullOrWhiteSpace(
                     imageUrl))
             {
-                return false;
+                return;
             }
 
-            imageUrl = imageUrl.Trim();
+            const string localPrefix =
+                "/images/products/";
 
-            // Local path:
-            // /images/products/example.jpg
-            if (imageUrl.StartsWith("/") &&
-                !imageUrl.StartsWith("//"))
+            if (!imageUrl.StartsWith(
+                    localPrefix,
+                    StringComparison.OrdinalIgnoreCase))
             {
-                return true;
+                // Old external URL.
+                return;
             }
 
-            if (!Uri.TryCreate(
-                    imageUrl,
-                    UriKind.Absolute,
-                    out var uri))
+            var fileName =
+                Path.GetFileName(
+                    imageUrl);
+
+            if (string.IsNullOrWhiteSpace(
+                    fileName))
             {
-                return false;
+                return;
             }
 
-            return uri.Scheme ==
-                       Uri.UriSchemeHttp ||
-                   uri.Scheme ==
-                       Uri.UriSchemeHttps;
+            var webRootPath =
+                _environment.WebRootPath
+                ?? Path.Combine(
+                    _environment.ContentRootPath,
+                    "wwwroot");
+
+            var physicalPath =
+                Path.Combine(
+                    webRootPath,
+                    "images",
+                    "products",
+                    fileName);
+
+            if (System.IO.File.Exists(
+                    physicalPath))
+            {
+                System.IO.File.Delete(
+                    physicalPath);
+            }
         }
     }
 }

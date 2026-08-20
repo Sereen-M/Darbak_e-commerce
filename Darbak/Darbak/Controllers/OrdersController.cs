@@ -432,6 +432,50 @@ namespace Darbak.Controllers
         }
 
         // ==========================================
+        // ORDER INVOICE
+        // ==========================================
+        [HttpGet]
+        public async Task<IActionResult> Invoice(
+            int id)
+        {
+            var userId =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                return Challenge();
+            }
+
+            var order =
+                await _context.Orders
+                    .AsNoTracking()
+                    .Include(o => o.User)
+                    .Include(o => o.OrderItems)
+                    .FirstOrDefaultAsync(o =>
+                        o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Normal users may only view
+            // invoices belonging to them.
+            // Admin can view any invoice.
+            var isAdmin =
+                User.IsInRole("Admin");
+
+            if (!isAdmin &&
+                order.UserId != userId)
+            {
+                return NotFound();
+            }
+
+            return View(order);
+        }
+
+        // ==========================================
         // ADMIN - ALL ORDERS
         // ==========================================
         [Authorize(Roles = "Admin")]

@@ -27,20 +27,27 @@ namespace Darbak.Controllers
                 .Where(p => p.IsActive)
                 .AsQueryable();
 
+            // Search by:
+            // - Product name
+            // - Category name
+            // Supports partial text
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
 
                 query = query.Where(p =>
-                    p.Name.Contains(search));
+                    p.Name.Contains(search) ||
+                    p.Category.Name.Contains(search));
             }
 
+            // Category filter
             if (categoryId.HasValue)
             {
                 query = query.Where(p =>
                     p.CategoryId == categoryId.Value);
             }
 
+            // Sorting
             query = sort switch
             {
                 "price_asc" =>
