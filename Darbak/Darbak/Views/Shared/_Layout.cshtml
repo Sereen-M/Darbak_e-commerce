@@ -39,7 +39,6 @@
 
                         <li class="nav-item">
                             <a class="nav-link"
-                               asp-area=""
                                asp-controller="Home"
                                asp-action="Index">
                                 Home
@@ -48,7 +47,6 @@
 
                         <li class="nav-item">
                             <a class="nav-link"
-                               asp-area=""
                                asp-controller="Catalog"
                                asp-action="Index">
                                 Catalog
@@ -57,12 +55,88 @@
 
                         <li class="nav-item">
                             <a class="nav-link"
-                               asp-area=""
                                asp-controller="Testimonials"
                                asp-action="Index">
                                 Testimonials
                             </a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-controller="Cart"
+                               asp-action="Index">
+                                Cart
+                            </a>
+                        </li>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-controller="Wishlist"
+                                   asp-action="Index">
+                                    Wishlist
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link"
+                                   asp-controller="Orders"
+                                   asp-action="Index">
+                                    My Orders
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item dropdown">
+
+                                <a class="nav-link dropdown-toggle"
+                                   href="#"
+                                   role="button"
+                                   data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+                                    Admin
+                                </a>
+
+                                <ul class="dropdown-menu">
+
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="Categories"
+                                           asp-action="Index">
+                                            Categories
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="Products"
+                                           asp-action="Index">
+                                            Products
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="Orders"
+                                           asp-action="AdminIndex">
+                                            Orders
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="Testimonials"
+                                           asp-action="AdminIndex">
+                                            Testimonials
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>
+                        }
 
                     </ul>
 
@@ -78,9 +152,108 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Darbak - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="border-top bg-light text-muted mt-5">
+        <div class="container py-4">
+
+            <div class="row">
+
+                <div class="col-md-4 mb-3">
+
+                    <h5 class="text-dark">
+                        Darbak
+                    </h5>
+
+                    <p class="mb-0">
+                        Auto parts and car accessories
+                        for your journey.
+                    </p>
+
+                </div>
+
+                <div class="col-md-4 mb-3">
+
+                    <h6 class="text-dark">
+                        Quick Links
+                    </h6>
+
+                    <ul class="list-unstyled">
+
+                        <li>
+                            <a asp-controller="Home"
+                               asp-action="Index"
+                               class="text-decoration-none">
+                                Home
+                            </a>
+                        </li>
+
+                        <li>
+                            <a asp-controller="Catalog"
+                               asp-action="Index"
+                               class="text-decoration-none">
+                                Catalog
+                            </a>
+                        </li>
+
+                        <li>
+                            <a asp-controller="Testimonials"
+                               asp-action="Index"
+                               class="text-decoration-none">
+                                Testimonials
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+                <div class="col-md-4 mb-3">
+
+                    <h6 class="text-dark">
+                        Account
+                    </h6>
+
+                    <ul class="list-unstyled">
+
+                        <li>
+                            <a asp-controller="Cart"
+                               asp-action="Index"
+                               class="text-decoration-none">
+                                Cart
+                            </a>
+                        </li>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li>
+                                <a asp-controller="Wishlist"
+                                   asp-action="Index"
+                                   class="text-decoration-none">
+                                    Wishlist
+                                </a>
+                            </li>
+
+                            <li>
+                                <a asp-controller="Orders"
+                                   asp-action="Index"
+                                   class="text-decoration-none">
+                                    My Orders
+                                </a>
+                            </li>
+                        }
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <div class="text-center">
+                &copy; @DateTime.Now.Year Darbak.
+                All rights reserved.
+            </div>
+
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
