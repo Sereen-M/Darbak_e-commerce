@@ -104,16 +104,80 @@ namespace Darbak.Controllers
                 new { id = review.ProductId });
         }
 
-        // ADMIN INDEX
+        // ==========================================
+        // ADMIN INDEX + FILTERING
+        // ==========================================
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            ApprovalStatus? status,
+            string? product,
+            string? user,
+            int? rating)
         {
-            var reviews = await _context.Reviews
+            var query = _context.Reviews
+                .AsNoTracking()
                 .Include(r => r.Product)
                 .Include(r => r.User)
-                .OrderByDescending(r => r.CreatedAt)
+                .AsQueryable();
+
+            // Filter by approval status
+            if (status.HasValue)
+            {
+                query = query.Where(r =>
+                    r.Status == status.Value);
+            }
+
+            // Filter by product name
+            if (!string.IsNullOrWhiteSpace(product))
+            {
+                product = product.Trim();
+
+                query = query.Where(r =>
+                    r.Product.Name.Contains(product));
+            }
+
+            // Filter by user name or email
+            if (!string.IsNullOrWhiteSpace(user))
+            {
+                user = user.Trim();
+
+                query = query.Where(r =>
+                    (r.User.FullName != null &&
+                     r.User.FullName.Contains(user)) ||
+                    (r.User.Email != null &&
+                     r.User.Email.Contains(user)));
+            }
+
+            // Rating filter
+            if (rating.HasValue &&
+                rating.Value >= 1 &&
+                rating.Value <= 5)
+            {
+                query = query.Where(r =>
+                    r.Rating == rating.Value);
+            }
+            else if (rating.HasValue)
+            {
+                rating = null;
+            }
+
+            var reviews = await query
+                .OrderByDescending(r =>
+                    r.CreatedAt)
                 .ToListAsync();
+
+            ViewBag.Status =
+                status?.ToString();
+
+            ViewBag.ProductFilter =
+                product;
+
+            ViewBag.UserFilter =
+                user;
+
+            ViewBag.Rating =
+                rating;
 
             return View(reviews);
         }

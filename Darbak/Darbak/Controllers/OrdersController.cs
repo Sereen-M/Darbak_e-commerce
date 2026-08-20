@@ -476,22 +476,100 @@ namespace Darbak.Controllers
         }
 
         // ==========================================
-        // ADMIN - ALL ORDERS
+        // ADMIN - ALL ORDERS + FILTERING
         // ==========================================
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> AdminIndex()
+        public async Task<IActionResult> AdminIndex(
+            int? orderId,
+            string? user,
+            OrderStatus? status,
+            PaymentStatus? paymentStatus,
+            DateTime? fromDate,
+            DateTime? toDate)
         {
-            var orders =
-                await _context.Orders
-                    .AsNoTracking()
-                    .Include(o =>
-                        o.User)
-                    .Include(o =>
-                        o.OrderItems)
-                    .OrderByDescending(o =>
-                        o.OrderDate)
-                    .ToListAsync();
+            var query = _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .AsQueryable();
+
+            // Filter by exact Order ID
+            if (orderId.HasValue)
+            {
+                query = query.Where(o =>
+                    o.Id == orderId.Value);
+            }
+
+            // Filter by user name or email.
+            // Partial text is supported.
+            if (!string.IsNullOrWhiteSpace(user))
+            {
+                user = user.Trim();
+
+                query = query.Where(o =>
+                    (o.User.FullName != null &&
+                     o.User.FullName.Contains(user)) ||
+                    (o.User.Email != null &&
+                     o.User.Email.Contains(user)));
+            }
+
+            // Filter by Order Status
+            if (status.HasValue)
+            {
+                query = query.Where(o =>
+                    o.Status == status.Value);
+            }
+
+            // Filter by Payment Status
+            if (paymentStatus.HasValue)
+            {
+                query = query.Where(o =>
+                    o.PaymentStatus ==
+                    paymentStatus.Value);
+            }
+
+            // From date
+            if (fromDate.HasValue)
+            {
+                var startDate =
+                    fromDate.Value.Date;
+
+                query = query.Where(o =>
+                    o.OrderDate >= startDate);
+            }
+
+            // To date - inclusive
+            if (toDate.HasValue)
+            {
+                var endDate =
+                    toDate.Value.Date.AddDays(1);
+
+                query = query.Where(o =>
+                    o.OrderDate < endDate);
+            }
+
+            var orders = await query
+                .OrderByDescending(o =>
+                    o.OrderDate)
+                .ToListAsync();
+
+            ViewBag.OrderId =
+                orderId;
+
+            ViewBag.UserFilter =
+                user;
+
+            ViewBag.Status =
+                status?.ToString();
+
+            ViewBag.PaymentStatus =
+                paymentStatus?.ToString();
+
+            ViewBag.FromDate =
+                fromDate?.ToString("yyyy-MM-dd");
+
+            ViewBag.ToDate =
+                toDate?.ToString("yyyy-MM-dd");
 
             return View(orders);
         }

@@ -1,10 +1,30 @@
-﻿@model IEnumerable<Darbak.Models.Review>
+﻿@using Darbak.Models.Enums
+@model IEnumerable<Darbak.Models.Review>
 
 @{
     ViewData["Title"] = "Reviews";
+
+    string? selectedStatus =
+        ViewBag.Status as string;
+
+    string? productFilter =
+        ViewBag.ProductFilter as string;
+
+    string? userFilter =
+        ViewBag.UserFilter as string;
+
+    int? selectedRating = null;
+
+    if (ViewBag.Rating != null)
+    {
+        selectedRating =
+            (int)ViewBag.Rating;
+    }
 }
 
-<h2>Reviews</h2>
+<h1 class="mb-4">
+    Reviews
+</h1>
 
 @if (TempData["ReviewAdminSuccess"] != null)
 {
@@ -13,132 +33,326 @@
     </div>
 }
 
+<div class="card mb-4">
+
+    <div class="card-header">
+        <strong>
+            Filter Reviews
+        </strong>
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="Index"
+              method="get">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <label for="status"
+                           class="form-label">
+                        Status
+                    </label>
+
+                    <select id="status"
+                            name="status"
+                            class="form-select">
+
+                        <option value="">
+                            All Statuses
+                        </option>
+
+                        @foreach (var statusValue
+                            in Enum.GetValues<ApprovalStatus>())
+                        {
+                            if (selectedStatus ==
+                                statusValue.ToString())
+                            {
+                                <option value="@statusValue"
+                                        selected>
+                                    @statusValue
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@statusValue">
+                                    @statusValue
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label for="product"
+                           class="form-label">
+                        Product
+                    </label>
+
+                    <input type="text"
+                           id="product"
+                           name="product"
+                           value="@productFilter"
+                           class="form-control"
+                           placeholder="Product name" />
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label for="user"
+                           class="form-label">
+                        User
+                    </label>
+
+                    <input type="text"
+                           id="user"
+                           name="user"
+                           value="@userFilter"
+                           class="form-control"
+                           placeholder="Name or email" />
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label for="rating"
+                           class="form-label">
+                        Rating
+                    </label>
+
+                    <select id="rating"
+                            name="rating"
+                            class="form-select">
+
+                        <option value="">
+                            All Ratings
+                        </option>
+
+                        @for (var ratingValue = 1;
+                              ratingValue <= 5;
+                              ratingValue++)
+                        {
+                            if (selectedRating ==
+                                ratingValue)
+                            {
+                                <option value="@ratingValue"
+                                        selected>
+                                    @ratingValue Star
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@ratingValue">
+                                    @ratingValue Star
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    Apply Filters
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    Reset Filters
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<div class="d-flex
+    justify-content-between
+    align-items-center
+    mb-3">
+
+    <h4 class="mb-0">
+        Review Results
+    </h4>
+
+    <span class="badge bg-secondary">
+        @Model.Count() result(s)
+    </span>
+
+</div>
+
 @if (!Model.Any())
 {
     <div class="alert alert-info">
-        No reviews have been submitted yet.
+        No reviews match the selected filters.
     </div>
 }
 else
 {
-    <table class="table table-bordered">
+    <div class="table-responsive">
 
-        <thead>
+        <table class="table
+            table-bordered
+            table-hover
+            align-middle">
 
-            <tr>
-                <th>Product</th>
-                <th>User</th>
-                <th>Rating</th>
-                <th>Comment</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
+            <thead>
 
-        </thead>
-
-        <tbody>
-
-            @foreach (var review in Model)
-            {
                 <tr>
-
-                    <td>
-                        @review.Product.Name
-                    </td>
-
-                    <td>
-                        @review.User.Email
-                    </td>
-
-                    <td>
-                        @review.Rating / 5
-                    </td>
-
-                    <td>
-                        @review.Comment
-                    </td>
-
-                    <td>
-
-                        @if (review.Status ==
-                            Darbak.Models.Enums.ApprovalStatus.Pending)
-                        {
-                            <span class="badge bg-warning text-dark">
-                                Pending
-                            </span>
-                        }
-                        else if (review.Status ==
-                            Darbak.Models.Enums.ApprovalStatus.Approved)
-                        {
-                            <span class="badge bg-success">
-                                Approved
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">
-                                Rejected
-                            </span>
-                        }
-
-                    </td>
-
-                    <td>
-                        @review.CreatedAt.ToString(
-                            "yyyy-MM-dd HH:mm")
-                    </td>
-
-                    <td>
-
-                        @if (review.Status ==
-                            Darbak.Models.Enums.ApprovalStatus.Pending)
-                        {
-                            <div class="d-flex gap-2">
-
-                                <form asp-action="Approve"
-                                      method="post">
-
-                                    <input type="hidden"
-                                           name="id"
-                                           value="@review.Id" />
-
-                                    <button type="submit"
-                                            class="btn btn-success btn-sm">
-                                        Approve
-                                    </button>
-
-                                </form>
-
-                                <form asp-action="Reject"
-                                      method="post">
-
-                                    <input type="hidden"
-                                           name="id"
-                                           value="@review.Id" />
-
-                                    <button type="submit"
-                                            class="btn btn-danger btn-sm">
-                                        Reject
-                                    </button>
-
-                                </form>
-
-                            </div>
-                        }
-                        else
-                        {
-                            <span class="text-muted">
-                                No actions
-                            </span>
-                        }
-
-                    </td>
-
+                    <th>Product</th>
+                    <th>User</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                 </tr>
-            }
 
-        </tbody>
+            </thead>
 
-    </table>
+            <tbody>
+
+                @foreach (var review in Model)
+                {
+                    <tr>
+
+                        <td>
+                            @review.Product.Name
+                        </td>
+
+                        <td>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                review.User.FullName))
+                            {
+                                <div>
+                                    @review.User.FullName
+                                </div>
+                            }
+
+                            <small class="text-muted">
+                                @review.User.Email
+                            </small>
+
+                        </td>
+
+                        <td>
+                            @review.Rating / 5
+                        </td>
+
+                        <td>
+                            @review.Comment
+                        </td>
+
+                        <td>
+
+                            @switch (review.Status)
+                            {
+                                case ApprovalStatus.Approved:
+
+                                    <span class="badge bg-success">
+                                        Approved
+                                    </span>
+
+                                    break;
+
+                                case ApprovalStatus.Rejected:
+
+                                    <span class="badge bg-danger">
+                                        Rejected
+                                    </span>
+
+                                    break;
+
+                                default:
+
+                                    <span class="badge
+                                        bg-warning
+                                        text-dark">
+                                        Pending
+                                    </span>
+
+                                    break;
+                            }
+
+                        </td>
+
+                        <td>
+                            @review.CreatedAt
+                            .ToLocalTime()
+                            .ToString(
+                            "yyyy-MM-dd HH:mm")
+                        </td>
+
+                        <td>
+
+                            @if (review.Status ==
+                                ApprovalStatus.Pending)
+                            {
+                                <div class="d-flex gap-2">
+
+                                    <form asp-action="Approve"
+                                          method="post">
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@review.Id" />
+
+                                        <button type="submit"
+                                                class="btn
+                                            btn-success
+                                            btn-sm">
+                                            Approve
+                                        </button>
+
+                                    </form>
+
+                                    <form asp-action="Reject"
+                                          method="post">
+
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@review.Id" />
+
+                                        <button type="submit"
+                                                class="btn
+                                            btn-danger
+                                            btn-sm">
+                                            Reject
+                                        </button>
+
+                                    </form>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    No actions
+                                </span>
+                            }
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
 }

@@ -18,16 +18,32 @@ namespace Darbak.Controllers
         }
 
         // ==========================================
-        // INDEX
+        // INDEX + ADMIN FILTERING
         // ==========================================
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string? search)
         {
-            var categories =
-                await _context.Categories
+            var query =
+                _context.Categories
                     .AsNoTracking()
+                    .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(c =>
+                    c.Name.Contains(search));
+            }
+
+            var categories =
+                await query
                     .OrderBy(c => c.Name)
                     .ToListAsync();
+
+            ViewBag.Search =
+                search;
 
             return View(categories);
         }

@@ -30,14 +30,44 @@ namespace Darbak.Controllers
         }
 
         // ==========================================
-        // USERS LIST
+        // USERS LIST + FILTERING
         // ==========================================
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string? search,
+            string? role)
         {
-            var users =
-                await _userManager.Users
+            var query =
+                _userManager.Users
                     .AsNoTracking()
+                    .AsQueryable();
+
+            // Filter by name or email
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(u =>
+                    (u.FullName != null &&
+                     u.FullName.Contains(search)) ||
+                    (u.Email != null &&
+                     u.Email.Contains(search)));
+            }
+
+            // Only supported project roles
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                role = role.Trim();
+
+                if (role != "Admin" &&
+                    role != "User")
+                {
+                    role = null;
+                }
+            }
+
+            var users =
+                await query
                     .OrderBy(u => u.FullName)
                     .ThenBy(u => u.Email)
                     .ToListAsync();
@@ -50,6 +80,14 @@ namespace Darbak.Controllers
                 var roles =
                     await _userManager
                         .GetRolesAsync(user);
+
+                // Role filter is applied after
+                // retrieving Identity roles.
+                if (!string.IsNullOrWhiteSpace(role) &&
+                    !roles.Contains(role))
+                {
+                    continue;
+                }
 
                 userItems.Add(
                     new AdminUserListItemViewModel
@@ -75,6 +113,12 @@ namespace Darbak.Controllers
                     Users =
                         userItems
                 };
+
+            ViewBag.Search =
+                search;
+
+            ViewBag.Role =
+                role;
 
             return View(viewModel);
         }

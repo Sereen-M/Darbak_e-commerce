@@ -18,14 +18,95 @@ namespace Darbak.Controllers
             _context = context;
         }
 
-        // INDEX
+        // ==========================================
+        // INDEX + ADMIN FILTERING
+        // ==========================================
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string? search,
+            int? categoryId,
+            bool? isActive,
+            string? stockStatus)
         {
-            var products = await _context.Products
+            var query = _context.Products
+                .AsNoTracking()
                 .Include(p => p.Category)
-                .OrderByDescending(p => p.CreatedAt)
-                .ToListAsync();
+                .AsQueryable();
+
+            // Product name - partial search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(p =>
+                    p.Name.Contains(search));
+            }
+
+            // Category
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p =>
+                    p.CategoryId == categoryId.Value);
+            }
+
+            // Active / Inactive
+            if (isActive.HasValue)
+            {
+                query = query.Where(p =>
+                    p.IsActive == isActive.Value);
+            }
+
+            // Stock status
+            if (!string.IsNullOrWhiteSpace(stockStatus))
+            {
+                stockStatus =
+                    stockStatus.Trim().ToLowerInvariant();
+
+                switch (stockStatus)
+                {
+                    case "in_stock":
+                        query = query.Where(p =>
+                            p.StockQuantity > 0);
+                        break;
+
+                    case "out_of_stock":
+                        query = query.Where(p =>
+                            p.StockQuantity == 0);
+                        break;
+
+                    default:
+                        stockStatus = null;
+                        break;
+                }
+            }
+
+            var categories =
+                await _context.Categories
+                    .AsNoTracking()
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
+
+            var products =
+                await query
+                    .OrderByDescending(p =>
+                        p.CreatedAt)
+                    .ToListAsync();
+
+            ViewBag.Search =
+                search;
+
+            ViewBag.CategoryId =
+                categoryId;
+
+            ViewBag.IsActive =
+                isActive?.ToString()
+                    .ToLowerInvariant();
+
+            ViewBag.StockStatus =
+                stockStatus;
+
+            ViewBag.Categories =
+                categories;
 
             return View(products);
         }
