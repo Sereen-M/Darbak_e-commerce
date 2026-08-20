@@ -4,7 +4,9 @@
     ViewData["Title"] = "Checkout";
 }
 
-<h1>Checkout</h1>
+<h1 class="mb-4">
+    Checkout
+</h1>
 
 @if (TempData["CheckoutInfo"] != null)
 {
@@ -21,55 +23,67 @@
          class="alert alert-danger">
     </div>
 
-    <div class="row">
+    <div class="row g-4">
 
         <div class="col-md-7">
 
-            <h4>Shipping Information</h4>
+            <div class="card">
 
-            <div class="mb-3">
+                <div class="card-header">
+                    <strong>
+                        Shipping Information
+                    </strong>
+                </div>
 
-                <label asp-for="ShippingAddress"
-                       class="form-label">
-                </label>
+                <div class="card-body">
 
-                <input asp-for="ShippingAddress"
-                       class="form-control" />
+                    <div class="mb-3">
 
-                <span asp-validation-for="ShippingAddress"
-                      class="text-danger">
-                </span>
+                        <label asp-for="ShippingAddress"
+                               class="form-label">
+                        </label>
 
-            </div>
+                        <input asp-for="ShippingAddress"
+                               class="form-control" />
 
-            <div class="mb-3">
+                        <span asp-validation-for="ShippingAddress"
+                              class="text-danger">
+                        </span>
 
-                <label asp-for="City"
-                       class="form-label">
-                </label>
+                    </div>
 
-                <input asp-for="City"
-                       class="form-control" />
+                    <div class="mb-3">
 
-                <span asp-validation-for="City"
-                      class="text-danger">
-                </span>
+                        <label asp-for="City"
+                               class="form-label">
+                        </label>
 
-            </div>
+                        <input asp-for="City"
+                               class="form-control" />
 
-            <div class="mb-3">
+                        <span asp-validation-for="City"
+                              class="text-danger">
+                        </span>
 
-                <label asp-for="PhoneNumber"
-                       class="form-label">
-                </label>
+                    </div>
 
-                <input asp-for="PhoneNumber"
-                       class="form-control"
-                       type="tel" />
+                    <div class="mb-3">
 
-                <span asp-validation-for="PhoneNumber"
-                      class="text-danger">
-                </span>
+                        <label asp-for="PhoneNumber"
+                               class="form-label">
+                        </label>
+
+                        <input asp-for="PhoneNumber"
+                               type="tel"
+                               class="form-control" />
+
+                        <span asp-validation-for="PhoneNumber"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
 
             </div>
 
@@ -77,64 +91,83 @@
 
         <div class="col-md-5">
 
-            <h4>Order Summary</h4>
+            <div class="card">
 
-            <div class="table-responsive">
+                <div class="card-header">
+                    <strong>
+                        Order Summary
+                    </strong>
+                </div>
 
-                <table class="table">
+                <div class="card-body">
 
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Qty</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
+                    <div class="table-responsive">
 
-                    <tbody>
+                        <table class="table">
 
-                        @foreach (var item
-                                  in Model.CartItems)
-                        {
-                            <tr>
+                            <thead>
 
-                                <td>
-                                    @item.ProductName
-                                </td>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Qty</th>
+                                    <th>Total</th>
+                                </tr>
 
-                                <td>
-                                    @item.Quantity
-                                </td>
+                            </thead>
 
-                                <td>
-                                    @item.Total.ToString("0.00")
-                                </td>
+                            <tbody>
 
-                            </tr>
-                        }
+                                @foreach (var item
+                                    in Model.CartItems)
+                                {
+                                    <tr>
 
-                    </tbody>
+                                        <td>
+                                            @item.ProductName
+                                        </td>
 
-                </table>
+                                        <td>
+                                            @item.Quantity
+                                        </td>
+
+                                        <td>
+                                            @item.Total
+                                            .ToString("0.00")
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <h5 class="mb-3">
+
+                        Total:
+
+                        @Model.TotalAmount
+                        .ToString("0.00")
+
+                    </h5>
+
+                    <button type="submit"
+                            id="continueButton"
+                            class="btn btn-success">
+                        Continue to Payment
+                    </button>
+
+                    <a asp-controller="Cart"
+                       asp-action="Index"
+                       class="btn btn-secondary">
+                        Back to Cart
+                    </a>
+
+                </div>
 
             </div>
-
-            <h5>
-                Total:
-                @Model.TotalAmount.ToString("0.00")
-            </h5>
-
-            <button type="submit"
-                    id="placeOrderButton"
-                    class="btn btn-success mt-3">
-                Place Order
-            </button>
-
-            <a asp-controller="Cart"
-               asp-action="Index"
-               class="btn btn-secondary mt-3">
-                Back to Cart
-            </a>
 
         </div>
 
@@ -149,19 +182,22 @@
     <script>
         document
             .getElementById("checkoutForm")
-            .addEventListener("submit", function() {
+            .addEventListener(
+                "submit",
+                function() {
 
-                if (!$(this).valid()) {
-                    return;
-                }
+                    if (!$(this).valid()) {
+                        return;
+                    }
 
-                const button =
-                    document.getElementById(
-                        "placeOrderButton");
+                    const button =
+                        document.getElementById(
+                            "continueButton");
 
-                button.disabled = true;
-                button.innerText =
-                    "Placing Order...";
-            });
+                    button.disabled = true;
+
+                    button.innerText =
+                        "Preparing Payment...";
+                });
     </script>
 }

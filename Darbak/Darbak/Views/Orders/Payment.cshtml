@@ -1,0 +1,241 @@
+﻿@model Darbak.ViewModels.MockPaymentViewModel
+
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-8">
+
+        <h1 class="mb-4">
+            Payment
+        </h1>
+
+        @if (TempData["PaymentInfo"] != null)
+        {
+            <div class="alert alert-info">
+                @TempData["PaymentInfo"]
+            </div>
+        }
+
+        @if (TempData["PaymentError"] != null)
+        {
+            <div class="alert alert-danger">
+                @TempData["PaymentError"]
+            </div>
+        }
+
+        <div class="alert alert-warning">
+
+            <strong>
+                Demo Payment
+            </strong>
+
+            <div>
+                This is a simulated payment.
+                No real card or payment information
+                is required.
+            </div>
+
+        </div>
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+                <strong>
+                    Shipping Information
+                </strong>
+            </div>
+
+            <div class="card-body">
+
+                <p class="mb-2">
+
+                    <strong>
+                        Address:
+                    </strong>
+
+                    @Model.ShippingAddress
+
+                </p>
+
+                <p class="mb-2">
+
+                    <strong>
+                        City:
+                    </strong>
+
+                    @Model.City
+
+                </p>
+
+                <p class="mb-0">
+
+                    <strong>
+                        Phone:
+                    </strong>
+
+                    @Model.PhoneNumber
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+                <strong>
+                    Order Summary
+                </strong>
+            </div>
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Product
+                                </th>
+
+                                <th class="text-center">
+                                    Quantity
+                                </th>
+
+                                <th class="text-end">
+                                    Price
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item
+                                in Model.CartItems)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @item.ProductName
+                                    </td>
+
+                                    <td class="text-center">
+                                        @item.Quantity
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.Price
+                                        .ToString("0.00")
+                                    </td>
+
+                                    <td class="text-end">
+                                        @item.Total
+                                        .ToString("0.00")
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                        <tfoot>
+
+                            <tr>
+
+                                <th colspan="3"
+                                    class="text-end">
+                                    Total
+                                </th>
+
+                                <th class="text-end">
+                                    @Model.TotalAmount
+                                    .ToString("0.00")
+                                </th>
+
+                            </tr>
+
+                        </tfoot>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <form asp-action="CompletePayment"
+                  method="post"
+                  id="paymentForm">
+
+                <input type="hidden"
+                       name="paymentToken"
+                       value="@Model.PaymentToken" />
+
+                <button type="submit"
+                        id="completePaymentButton"
+                        class="btn btn-success btn-lg">
+
+                    Complete Payment
+
+                </button>
+
+            </form>
+
+            <form asp-action="CancelPayment"
+                  method="post">
+
+                <button type="submit"
+                        class="btn btn-outline-secondary btn-lg">
+
+                    Cancel Payment
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        document
+            .getElementById("paymentForm")
+            .addEventListener(
+                "submit",
+                function() {
+
+                    const button =
+                        document.getElementById(
+                            "completePaymentButton");
+
+                    button.disabled =
+                        true;
+
+                    button.innerText =
+                        "Processing...";
+                });
+
+    </script>
+}
