@@ -1,7 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Darbak.Models.Enums;
-
-
+﻿using Darbak.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Darbak.Models
 {

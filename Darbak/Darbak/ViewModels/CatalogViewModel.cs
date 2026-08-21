@@ -1,6 +1,4 @@
-﻿using Darbak.Models;
-
-namespace Darbak.ViewModels
+﻿namespace Darbak.ViewModels
 {
     public class CatalogViewModel
     {

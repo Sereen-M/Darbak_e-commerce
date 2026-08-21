@@ -1,10 +1,9 @@
 ﻿using Darbak.Data;
-using Darbak.Models;
+using Darbak.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Darbak.Models.Enums;
 
 namespace Darbak.Controllers
 {

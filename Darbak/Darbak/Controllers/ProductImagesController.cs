@@ -1,8 +1,6 @@
 ﻿using Darbak.Data;
-using Darbak.Models;
 using Darbak.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

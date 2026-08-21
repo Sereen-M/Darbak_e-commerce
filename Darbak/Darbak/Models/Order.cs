@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Darbak.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Darbak.Models.Enums;
 
 namespace Darbak.Models
 {
@@ -38,7 +38,6 @@ namespace Darbak.Models
 
         public PaymentStatus PaymentStatus { get; set; } =
             PaymentStatus.Pending;
-
 
         public ICollection<OrderItem> OrderItems { get; set; } =
             new List<OrderItem>();

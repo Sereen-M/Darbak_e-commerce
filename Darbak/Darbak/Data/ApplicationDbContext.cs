@@ -1,5 +1,4 @@
-﻿using Darbak.Models;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Darbak.Data
@@ -48,8 +47,6 @@ namespace Darbak.Data
                 .WithMany(p => p.OrderItems)
                 .HasForeignKey(oi => oi.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿
-namespace Darbak.Models
+﻿namespace Darbak.Models
 {
     public class WishlistItem
     {

@@ -1,9 +1,8 @@
-﻿using System.Security.Claims;
-using Darbak.Data;
-using Darbak.Models;
+﻿using Darbak.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Darbak.Controllers
 {
@@ -18,7 +17,6 @@ namespace Darbak.Controllers
             _context = context;
         }
 
-       
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -47,7 +45,6 @@ namespace Darbak.Controllers
             return View(wishlistItems);
         }
 
-      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(
@@ -126,7 +123,6 @@ namespace Darbak.Controllers
             }
             catch (DbUpdateException)
             {
-            
                 var existsNow =
                     await _context.WishlistItems
                         .AsNoTracking()
@@ -166,7 +162,6 @@ namespace Darbak.Controllers
                 });
         }
 
-       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Remove(

@@ -1,14 +1,13 @@
-﻿using System.Collections.Concurrent;
-using System.Data;
-using System.Security.Claims;
-using System.Text.Json;
-using Darbak.Data;
-using Darbak.Models;
+﻿using Darbak.Data;
 using Darbak.Models.Enums;
 using Darbak.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
+using System.Data;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace Darbak.Controllers
 {
@@ -22,8 +21,7 @@ namespace Darbak.Controllers
         private const string PendingPaymentSessionKey =
             "PendingMockPayment";
 
-        private static readonly
-            ConcurrentDictionary<string, SemaphoreSlim>
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim>
             PaymentLocks = new();
 
         public OrdersController(
@@ -1397,8 +1395,7 @@ namespace Darbak.Controllers
         {
             public List<CartItemViewModel>
                 Cart
-            { get; set; } =
-                    new();
+            { get; set; } = new();
 
             public bool Changed { get; set; }
         }

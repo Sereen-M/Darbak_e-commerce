@@ -1,8 +1,8 @@
-﻿using System.Text.Json;
-using Darbak.Data;
+﻿using Darbak.Data;
 using Darbak.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Darbak.Controllers
 {

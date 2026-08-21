@@ -1,5 +1,4 @@
 ﻿using Darbak.Data;
-using Darbak.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

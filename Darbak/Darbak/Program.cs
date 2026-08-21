@@ -1,8 +1,7 @@
 using Darbak.Data;
-using Darbak.Models;
+using Darbak.Data.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Darbak.Data.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +18,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
 
 // ==============================
 // Identity
@@ -38,7 +36,6 @@ builder.Services
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-
 // ==============================
 // Session
 // ==============================
@@ -52,17 +49,13 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-
 // ==============================
 // MVC
 // ==============================
 
 builder.Services.AddControllersWithViews();
 
-
 var app = builder.Build();
-
-
 
 if (app.Environment.IsDevelopment())
 {

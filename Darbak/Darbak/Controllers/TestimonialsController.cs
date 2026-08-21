@@ -1,10 +1,9 @@
-﻿using System.Security.Claims;
-using Darbak.Data;
-using Darbak.Models;
+﻿using Darbak.Data;
 using Darbak.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Darbak.Controllers
 {
@@ -45,7 +44,6 @@ namespace Darbak.Controllers
             return View();
         }
 
-   
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]

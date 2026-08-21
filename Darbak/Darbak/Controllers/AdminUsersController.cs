@@ -1,11 +1,10 @@
-﻿using System.Security.Claims;
-using Darbak.Data;
-using Darbak.Models;
+﻿using Darbak.Data;
 using Darbak.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Darbak.Controllers
 {
