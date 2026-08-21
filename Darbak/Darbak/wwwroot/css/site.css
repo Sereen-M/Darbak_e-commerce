@@ -29,3 +29,58 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+body {
+    background-color: #fff;
+}
+
+main {
+    width: 100%;
+}
+
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 1rem;
+    z-index: 2000;
+    padding: 0.75rem 1rem;
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+    border-radius: 0.375rem;
+}
+
+    .skip-link:focus {
+        top: 1rem;
+    }
+
+.footer-link {
+    color: var(--bs-secondary-color);
+    text-decoration: none;
+}
+
+    .footer-link:hover,
+    .footer-link:focus {
+        color: var(--bs-primary);
+        text-decoration: underline;
+    }
+
+    .navbar .nav-link:focus-visible,
+    .dropdown-item:focus-visible,
+    .footer-link:focus-visible,
+    a.btn:focus-visible,
+    button:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+    }
+
+img {
+    max-width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .navbar-nav .dropdown-menu {
+        border: 0;
+        padding-left: 1rem;
+    }
+}

@@ -6,20 +6,6 @@
 
 <h1>Images - @Model.Name</h1>
 
-@if (TempData["ImageSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["ImageSuccess"]
-    </div>
-}
-
-@if (TempData["ImageError"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["ImageError"]
-    </div>
-}
-
 <a asp-action="Create"
    asp-route-productId="@Model.Id"
    class="btn btn-primary mb-3">

@@ -4,44 +4,64 @@
     ViewData["Title"] = "My Wishlist";
 }
 
-<h1>My Wishlist</h1>
+<div class="d-flex
+    justify-content-between
+    align-items-center
+    flex-wrap
+    gap-2
+    mb-4">
 
-@if (TempData["WishlistSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["WishlistSuccess"]
-    </div>
-}
+    <div>
 
-@if (TempData["WishlistInfo"] != null)
-{
-    <div class="alert alert-info">
-        @TempData["WishlistInfo"]
-    </div>
-}
+        <h1 class="h2 mb-1">
+            My Wishlist
+        </h1>
 
-@if (TempData["WishlistError"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["WishlistError"]
+        <p class="text-muted mb-0">
+            Products you saved for later.
+        </p>
+
     </div>
-}
+
+    <a asp-controller="Catalog"
+       asp-action="Index"
+       class="btn btn-outline-primary">
+
+        Browse Catalog
+
+    </a>
+
+</div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info">
-        Your wishlist is empty.
-    </div>
+    <div class="text-center
+        border
+        rounded
+        bg-light
+        p-5">
 
-    <a asp-controller="Home"
-       asp-action="Index"
-       class="btn btn-secondary">
-        Back to Home
-    </a>
+        <h2 class="h4 mb-2">
+            Your wishlist is empty
+        </h2>
+
+        <p class="text-muted mb-3">
+            Save products you are interested in and find them here later.
+        </p>
+
+        <a asp-controller="Catalog"
+           asp-action="Index"
+           class="btn btn-primary">
+
+            Browse Products
+
+        </a>
+
+    </div>
 }
 else
 {
-    <div class="row">
+    <div class="row g-4">
 
         @foreach (var item in Model)
         {
@@ -51,15 +71,23 @@ else
                     .ThenBy(i => i.Id)
                     .FirstOrDefault();
 
-            <div class="col-md-4 mb-4">
+            var productTitleId =
+                $"wishlist-product-{item.ProductId}";
 
-                <div class="card h-100">
+            <div class="col-12
+                col-sm-6
+                col-lg-4
+                col-xl-3">
+
+                <article class="card h-100 shadow-sm"
+                         aria-labelledby="@productTitleId">
 
                     @if (mainImage != null)
                     {
                         <img src="@mainImage.ImageUrl"
                              class="card-img-top"
                              alt="@item.Product.Name"
+                             loading="lazy"
                              style="height: 220px;
                         object-fit: cover;" />
                     }
@@ -68,69 +96,109 @@ else
                         <div class="d-flex
                             align-items-center
                             justify-content-center
-                            bg-light text-muted"
-                             style="height: 220px;">
+                            bg-light
+                            text-muted"
+                             style="height: 220px;"
+                             aria-label="No product image available">
+
                             No Image
+
                         </div>
                     }
 
-                    <div class="card-body">
+                    <div class="card-body d-flex flex-column">
 
-                        <h5 class="card-title">
+                        <h2 id="@productTitleId"
+                            class="card-title h5">
+
                             @item.Product.Name
-                        </h5>
 
-                        <p class="card-text">
-                            <strong>Price:</strong>
+                        </h2>
+
+                        <p class="fw-bold fs-5 mb-3">
+
                             @item.Product.Price.ToString("0.00")
+
                         </p>
 
                         @if (!item.Product.IsActive)
                         {
-                            <div class="alert alert-warning py-2">
-                                This product is currently unavailable.
+                            <div class="mb-3">
+
+                                <span class="badge bg-secondary"
+                                      role="status">
+
+                                    Unavailable
+
+                                </span>
+
                             </div>
                         }
                         else if (item.Product.StockQuantity <= 0)
                         {
-                            <div class="alert alert-warning py-2">
-                                This product is currently out of stock.
+                            <div class="mb-3">
+
+                                <span class="badge bg-danger"
+                                      role="status">
+
+                                    Out of Stock
+
+                                </span>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="mb-3">
+
+                                <span class="badge bg-success"
+                                      role="status">
+
+                                    In Stock
+
+                                </span>
+
                             </div>
                         }
 
+                        <div class="mt-auto d-grid gap-2">
+
+                            @if (item.Product.IsActive)
+                            {
+                                <a asp-controller="Products"
+                                   asp-action="Details"
+                                   asp-route-id="@item.ProductId"
+                                   class="btn btn-outline-primary"
+                                   aria-label="View details for @item.Product.Name">
+
+                                    View Product
+
+                                </a>
+                            }
+
+                            <form asp-action="Remove"
+                                  method="post">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@item.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-danger w-100"
+                                        aria-label="Remove @item.Product.Name from wishlist"
+                                        onclick="return confirm('Remove this product from your wishlist?');">
+
+                                    Remove
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
                     </div>
 
-                    <div class="card-footer bg-transparent">
-
-                        @if (item.Product.IsActive)
-                        {
-                            <a asp-controller="Products"
-                               asp-action="Details"
-                               asp-route-id="@item.ProductId"
-                               class="btn btn-primary btn-sm">
-                                View Product
-                            </a>
-                        }
-
-                        <form asp-action="Remove"
-                              method="post"
-                              class="d-inline">
-
-                            <input type="hidden"
-                                   name="id"
-                                   value="@item.Id" />
-
-                            <button type="submit"
-                                    class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Remove this product from your wishlist?');">
-                                Remove
-                            </button>
-
-                        </form>
-
-                    </div>
-
-                </div>
+                </article>
 
             </div>
         }

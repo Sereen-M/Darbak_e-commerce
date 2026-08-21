@@ -26,13 +26,6 @@
     Reviews
 </h1>
 
-@if (TempData["ReviewAdminSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["ReviewAdminSuccess"]
-    </div>
-}
-
 <div class="card mb-4">
 
     <div class="card-header">
@@ -182,6 +175,8 @@
 <div class="d-flex
     justify-content-between
     align-items-center
+    flex-wrap
+    gap-2
     mb-3">
 
     <h4 class="mb-0">
@@ -196,8 +191,25 @@
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info">
-        No reviews match the selected filters.
+    <div class="text-center
+        border
+        rounded
+        bg-light
+        p-4">
+
+        <h2 class="h5 mb-2">
+            No reviews found
+        </h2>
+
+        <p class="text-muted mb-3">
+            No reviews match the selected filters.
+        </p>
+
+        <a asp-action="Index"
+           class="btn btn-outline-primary">
+            Clear Filters
+        </a>
+
     </div>
 }
 else
@@ -208,17 +220,20 @@ else
             table-bordered
             table-hover
             align-middle">
+            <caption class="visually-hidden">
+                Product reviews awaiting or having completed moderation
+            </caption>
 
             <thead>
 
                 <tr>
-                    <th>Product</th>
-                    <th>User</th>
-                    <th>Rating</th>
-                    <th>Comment</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+                    <th scope="col">Product</th>
+                    <th scope="col">User</th>
+                    <th scope="col">Rating</th>
+                    <th scope="col">Comment</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Actions</th>
                 </tr>
 
             </thead>
@@ -302,8 +317,7 @@ else
                             @if (review.Status ==
                                 ApprovalStatus.Pending)
                             {
-                                <div class="d-flex gap-2">
-
+                                <div class="d-flex flex-wrap gap-2">
                                     <form asp-action="Approve"
                                           method="post">
 

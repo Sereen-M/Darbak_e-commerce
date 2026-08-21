@@ -1,0 +1,101 @@
+﻿@{
+    var notificationDefinitions = new[]
+    {
+        new { Key = "CartSuccess", Type = "success", Title = "Success" },
+        new { Key = "CartError", Type = "danger", Title = "Error" },
+
+        new { Key = "WishlistSuccess", Type = "success", Title = "Success" },
+        new { Key = "WishlistInfo", Type = "info", Title = "Information" },
+        new { Key = "WishlistError", Type = "danger", Title = "Error" },
+
+        new { Key = "ReviewSuccess", Type = "success", Title = "Success" },
+        new { Key = "ReviewAdminSuccess", Type = "success", Title = "Success" },
+
+        new { Key = "TestimonialSuccess", Type = "success", Title = "Success" },
+
+        new { Key = "CategorySuccess", Type = "success", Title = "Success" },
+        new { Key = "CategoryError", Type = "danger", Title = "Error" },
+
+        new { Key = "ProductSuccess", Type = "success", Title = "Success" },
+        new { Key = "ProductError", Type = "danger", Title = "Error" },
+
+        new { Key = "ImageSuccess", Type = "success", Title = "Success" },
+        new { Key = "ImageError", Type = "danger", Title = "Error" },
+
+        new { Key = "CheckoutInfo", Type = "info", Title = "Checkout" },
+
+        new { Key = "PaymentInfo", Type = "info", Title = "Payment" },
+        new { Key = "PaymentError", Type = "danger", Title = "Payment Error" },
+
+        new { Key = "OrderSuccess", Type = "success", Title = "Success" },
+        new { Key = "OrderError", Type = "danger", Title = "Order Error" },
+        new { Key = "AdminOrderSuccess", Type = "success", Title = "Success" },
+
+        new { Key = "UserSuccess", Type = "success", Title = "Success" },
+        new { Key = "UserInfo", Type = "info", Title = "Information" },
+        new { Key = "UserError", Type = "danger", Title = "Error" }
+    };
+
+    var notifications = new List<(string Type, string Title, string Message)>();
+
+    foreach (var definition in notificationDefinitions)
+    {
+        if (TempData[definition.Key] is string message &&
+            !string.IsNullOrWhiteSpace(message))
+        {
+            notifications.Add(
+                (
+                    definition.Type,
+                    definition.Title,
+                    message
+                )
+            );
+        }
+    }
+}
+
+@if (notifications.Any())
+{
+    <div class="toast-container
+        position-fixed
+        top-0
+        end-0
+        p-3"
+         style="z-index: 1090; margin-top: 70px;">
+
+        @foreach (var notification in notifications)
+        {
+            <div class="toast darbak-toast shadow mb-2"
+                 role="alert"
+                 aria-live="assertive"
+                 aria-atomic="true"
+                 data-bs-autohide="true"
+                 data-bs-delay="4000">
+
+                <div class="toast-header">
+
+                    <span class="badge bg-@notification.Type me-2">
+                        &nbsp;
+                    </span>
+
+                    <strong class="me-auto">
+                        @notification.Title
+                    </strong>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="toast"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+                <div class="toast-body">
+                    @notification.Message
+                </div>
+
+            </div>
+        }
+
+    </div>
+}

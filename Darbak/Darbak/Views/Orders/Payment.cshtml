@@ -6,27 +6,22 @@
 
 <div class="row justify-content-center">
 
-    <div class="col-lg-8">
+    <div class="col-12 col-lg-9">
 
-        <h1 class="mb-4">
-            Payment
-        </h1>
+        <div class="mb-4">
 
-        @if (TempData["PaymentInfo"] != null)
-        {
-            <div class="alert alert-info">
-                @TempData["PaymentInfo"]
-            </div>
-        }
+            <h1 class="h2 mb-1">
+                Payment
+            </h1>
 
-        @if (TempData["PaymentError"] != null)
-        {
-            <div class="alert alert-danger">
-                @TempData["PaymentError"]
-            </div>
-        }
+            <p class="text-muted mb-0">
+                Review your order before completing the demo payment.
+            </p>
 
-        <div class="alert alert-warning">
+        </div>
+
+        <div class="alert alert-warning"
+             role="note">
 
             <strong>
                 Demo Payment
@@ -34,62 +29,67 @@
 
             <div>
                 This is a simulated payment.
-                No real card or payment information
-                is required.
+                No real card or payment information is required.
             </div>
 
         </div>
 
-        <div class="card mb-4">
+        <section class="card shadow-sm mb-4"
+                 aria-labelledby="payment-shipping-heading">
 
             <div class="card-header">
-                <strong>
+
+                <h2 id="payment-shipping-heading"
+                    class="h5 mb-0">
                     Shipping Information
-                </strong>
+                </h2>
+
             </div>
 
             <div class="card-body">
 
-                <p class="mb-2">
+                <dl class="row mb-0">
 
-                    <strong>
-                        Address:
-                    </strong>
+                    <dt class="col-sm-3">
+                        Address
+                    </dt>
 
-                    @Model.ShippingAddress
+                    <dd class="col-sm-9">
+                        @Model.ShippingAddress
+                    </dd>
 
-                </p>
+                    <dt class="col-sm-3">
+                        City
+                    </dt>
 
-                <p class="mb-2">
+                    <dd class="col-sm-9">
+                        @Model.City
+                    </dd>
 
-                    <strong>
-                        City:
-                    </strong>
+                    <dt class="col-sm-3">
+                        Phone
+                    </dt>
 
-                    @Model.City
+                    <dd class="col-sm-9 mb-0">
+                        @Model.PhoneNumber
+                    </dd>
 
-                </p>
-
-                <p class="mb-0">
-
-                    <strong>
-                        Phone:
-                    </strong>
-
-                    @Model.PhoneNumber
-
-                </p>
+                </dl>
 
             </div>
 
-        </div>
+        </section>
 
-        <div class="card mb-4">
+        <section class="card shadow-sm mb-4"
+                 aria-labelledby="payment-summary-heading">
 
             <div class="card-header">
-                <strong>
+
+                <h2 id="payment-summary-heading"
+                    class="h5 mb-0">
                     Order Summary
-                </strong>
+                </h2>
+
             </div>
 
             <div class="card-body">
@@ -98,23 +98,30 @@
 
                     <table class="table align-middle">
 
+                        <caption class="visually-hidden">
+                            Products included in the demo payment
+                        </caption>
+
                         <thead>
 
                             <tr>
 
-                                <th>
+                                <th scope="col">
                                     Product
                                 </th>
 
-                                <th class="text-center">
+                                <th scope="col"
+                                    class="text-center">
                                     Quantity
                                 </th>
 
-                                <th class="text-end">
+                                <th scope="col"
+                                    class="text-end">
                                     Price
                                 </th>
 
-                                <th class="text-end">
+                                <th scope="col"
+                                    class="text-end">
                                     Total
                                 </th>
 
@@ -124,8 +131,7 @@
 
                         <tbody>
 
-                            @foreach (var item
-                                in Model.CartItems)
+                            @foreach (var item in Model.CartItems)
                             {
                                 <tr>
 
@@ -137,14 +143,12 @@
                                         @item.Quantity
                                     </td>
 
-                                    <td class="text-end">
-                                        @item.Price
-                                        .ToString("0.00")
+                                    <td class="text-end text-nowrap">
+                                        @item.Price.ToString("0.00")
                                     </td>
 
-                                    <td class="text-end">
-                                        @item.Total
-                                        .ToString("0.00")
+                                    <td class="text-end text-nowrap">
+                                        @item.Total.ToString("0.00")
                                     </td>
 
                                 </tr>
@@ -157,13 +161,13 @@
                             <tr>
 
                                 <th colspan="3"
+                                    scope="row"
                                     class="text-end">
                                     Total
                                 </th>
 
-                                <th class="text-end">
-                                    @Model.TotalAmount
-                                    .ToString("0.00")
+                                <th class="text-end text-nowrap">
+                                    @Model.TotalAmount.ToString("0.00")
                                 </th>
 
                             </tr>
@@ -176,9 +180,9 @@
 
             </div>
 
-        </div>
+        </section>
 
-        <div class="d-flex gap-2">
+        <div class="d-grid gap-2 d-sm-flex">
 
             <form asp-action="CompletePayment"
                   method="post"
@@ -219,23 +223,17 @@
 @section Scripts {
 
     <script>
-
         document
             .getElementById("paymentForm")
-            .addEventListener(
-                "submit",
-                function() {
+            .addEventListener("submit", function () {
 
-                    const button =
-                        document.getElementById(
-                            "completePaymentButton");
+                const button =
+                    document.getElementById(
+                        "completePaymentButton"
+                    );
 
-                    button.disabled =
-                        true;
-
-                    button.innerText =
-                        "Processing...";
-                });
-
+                button.disabled = true;
+                button.innerText = "Processing...";
+            });
     </script>
 }

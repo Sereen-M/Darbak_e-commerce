@@ -10,270 +10,307 @@
         ViewBag.Role as string;
 }
 
-<div class="container">
+<div class="d-flex
+    justify-content-between
+    align-items-start
+    flex-wrap
+    gap-3
+    mb-4">
 
-    <div class="d-flex
-        justify-content-between
-        align-items-center
-        mb-4">
+    <div>
 
-        <div>
+        <h1 class="h2 mb-1">
+            User Management
+        </h1>
 
-            <h1 class="mb-1">
-                User Management
-            </h1>
-
-            <p class="text-muted mb-0">
-                View and manage Darbak users and roles.
-            </p>
-
-        </div>
+        <p class="text-muted mb-0">
+            View and manage Darbak users and roles.
+        </p>
 
     </div>
 
-    @if (TempData["UserSuccess"] != null)
-    {
-        <div class="alert alert-success">
-            @TempData["UserSuccess"]
-        </div>
-    }
-
-    @if (TempData["UserError"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["UserError"]
-        </div>
-    }
-
-    <div class="card mb-4">
-
-        <div class="card-header">
-
-            <strong>
-                Filter Users
-            </strong>
-
-        </div>
-
-        <div class="card-body">
-
-            <form asp-action="Index"
-                  method="get">
-
-                <div class="row g-3">
-
-                    <div class="col-md-8">
-
-                        <label for="search"
-                               class="form-label">
-                            Name or Email
-                        </label>
-
-                        <input type="text"
-                               id="search"
-                               name="search"
-                               value="@search"
-                               class="form-control"
-                               placeholder="Search by name or email" />
-
-                    </div>
-
-                    <div class="col-md-4">
-
-                        <label for="role"
-                               class="form-label">
-                            Role
-                        </label>
-
-                        <select id="role"
-                                name="role"
-                                class="form-select">
-
-                            <option value="">
-                                All Roles
-                            </option>
-
-                            @if (selectedRole == "Admin")
-                            {
-                                <option value="Admin"
-                                        selected>
-                                    Admin
-                                </option>
-                            }
-                            else
-                            {
-                                <option value="Admin">
-                                    Admin
-                                </option>
-                            }
-
-                            @if (selectedRole == "User")
-                            {
-                                <option value="User"
-                                        selected>
-                                    User
-                                </option>
-                            }
-                            else
-                            {
-                                <option value="User">
-                                    User
-                                </option>
-                            }
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-                <div class="d-flex gap-2 mt-4">
-
-                    <button type="submit"
-                            class="btn btn-primary">
-                        Apply Filters
-                    </button>
-
-                    <a asp-action="Index"
-                       class="btn btn-outline-secondary">
-                        Reset Filters
-                    </a>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </div>
-
-    <div class="card">
-
-        <div class="card-header
-            d-flex
-            justify-content-between
-            align-items-center">
-
-            <span>
-                Users
-            </span>
-
-            <span class="badge bg-secondary">
-                @Model.Users.Count result(s)
-            </span>
-
-        </div>
-
-        <div class="card-body">
-
-            @if (!Model.Users.Any())
-            {
-                <div class="alert alert-info mb-0">
-                    No users match the selected filters.
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-
-                    <table class="table
-                        table-hover
-                        align-middle">
-
-                        <thead>
-
-                            <tr>
-                                <th>Full Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-
-                                <th class="text-end">
-                                    Actions
-                                </th>
-                            </tr>
-
-                        </thead>
-
-                        <tbody>
-
-                            @foreach (var user
-                                in Model.Users)
-                            {
-                                <tr>
-
-                                    <td>
-
-                                        @(string.IsNullOrWhiteSpace(
-                                            user.FullName)
-                                            ? "Not provided"
-                                            : user.FullName)
-
-                                    </td>
-
-                                    <td>
-                                        @user.Email
-                                    </td>
-
-                                    <td>
-
-                                        @if (!user.Roles.Any())
-                                        {
-                                            <span class="badge
-                                                bg-secondary">
-                                                No Role
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            @foreach (var role
-                                                in user.Roles)
-                                            {
-                                                if (role == "Admin")
-                                                {
-                                                    <span class="badge
-                                                        bg-danger
-                                                        me-1">
-                                                        @role
-                                                    </span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge
-                                                        bg-primary
-                                                        me-1">
-                                                        @role
-                                                    </span>
-                                                }
-                                            }
-                                        }
-
-                                    </td>
-
-                                    <td class="text-end">
-
-                                        <a asp-controller="AdminUsers"
-                                           asp-action="Details"
-                                           asp-route-id="@user.Id"
-                                           class="btn
-                                            btn-sm
-                                            btn-outline-primary">
-                                            Details
-                                        </a>
-
-                                    </td>
-
-                                </tr>
-                            }
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-            }
-
-        </div>
-
-    </div>
+    <span class="badge bg-secondary fs-6">
+        @Model.Users.Count user(s)
+    </span>
 
 </div>
+
+<section class="card shadow-sm mb-4"
+         aria-labelledby="user-filters-heading">
+
+    <div class="card-header">
+
+        <h2 id="user-filters-heading"
+            class="h5 mb-0">
+            Filter Users
+        </h2>
+
+    </div>
+
+    <div class="card-body">
+
+        <form asp-action="Index"
+              method="get">
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-8">
+
+                    <label for="userSearch"
+                           class="form-label">
+                        Name or Email
+                    </label>
+
+                    <input type="search"
+                           id="userSearch"
+                           name="search"
+                           value="@search"
+                           class="form-control"
+                           placeholder="Search by name or email"
+                           autocomplete="off" />
+
+                </div>
+
+                <div class="col-12 col-md-4">
+
+                    <label for="userRole"
+                           class="form-label">
+                        Role
+                    </label>
+
+                    <select id="userRole"
+                            name="role"
+                            class="form-select">
+
+                        <option value="">
+                            All Roles
+                        </option>
+
+                        @if (selectedRole == "Admin")
+                        {
+                            <option value="Admin"
+                                    selected>
+                                Admin
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="Admin">
+                                Admin
+                            </option>
+                        }
+
+                        @if (selectedRole == "User")
+                        {
+                            <option value="User"
+                                    selected>
+                                User
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="User">
+                                User
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="d-grid
+                gap-2
+                d-sm-flex
+                mt-4">
+
+                <button type="submit"
+                        class="btn btn-primary">
+                    Apply Filters
+                </button>
+
+                <a asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    Reset Filters
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
+<section class="card shadow-sm"
+         aria-labelledby="users-list-heading">
+
+    <div class="card-header
+        d-flex
+        justify-content-between
+        align-items-center
+        flex-wrap
+        gap-2">
+
+        <h2 id="users-list-heading"
+            class="h5 mb-0">
+            Users
+        </h2>
+
+        <span class="badge bg-secondary">
+            @Model.Users.Count result(s)
+        </span>
+
+    </div>
+
+    <div class="card-body">
+
+        @if (!Model.Users.Any())
+        {
+            <div class="text-center
+                border
+                rounded
+                bg-light
+                p-4">
+
+                <h3 class="h5 mb-2">
+                    No users found
+                </h3>
+
+                <p class="text-muted mb-3">
+                    No users match the selected filters.
+                </p>
+
+                <a asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Clear Filters
+                </a>
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table
+                    table-hover
+                    align-middle">
+
+                    <caption class="visually-hidden">
+                        Registered Darbak users
+                    </caption>
+
+                    <thead>
+
+                        <tr>
+
+                            <th scope="col">
+                                Full Name
+                            </th>
+
+                            <th scope="col">
+                                Email
+                            </th>
+
+                            <th scope="col">
+                                Role
+                            </th>
+
+                            <th scope="col"
+                                class="text-end">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var user in Model.Users)
+                        {
+                            <tr>
+
+                                <td>
+
+                                    @if (string.IsNullOrWhiteSpace(
+                                        user.FullName))
+                                    {
+                                        <span class="text-muted">
+                                            Not provided
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        @user.FullName
+                                    }
+
+                                </td>
+
+                                <td>
+                                    @user.Email
+                                </td>
+
+                                <td>
+
+                                    @if (!user.Roles.Any())
+                                    {
+                                        <span class="badge bg-secondary">
+                                            No Role
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var role in user.Roles)
+                                        {
+                                            if (role == "Admin")
+                                            {
+                                                <span class="badge
+                                                    bg-danger
+                                                    me-1">
+                                                    Admin
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge
+                                                    bg-primary
+                                                    me-1">
+                                                    @role
+                                                </span>
+                                            }
+                                        }
+                                    }
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <a asp-controller="AdminUsers"
+                                       asp-action="Details"
+                                       asp-route-id="@user.Id"
+                                       class="btn
+                                        btn-sm
+                                        btn-outline-primary"
+                                       aria-label="View details for @user.Email">
+
+                                        Details
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+</section>

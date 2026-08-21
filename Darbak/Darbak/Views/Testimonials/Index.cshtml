@@ -4,8 +4,12 @@
     ViewData["Title"] = "Testimonials";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-
+<div class="d-flex
+    justify-content-between
+    align-items-center
+    flex-wrap
+    gap-3
+    mb-4">
     <h1>Testimonials</h1>
 
     @if (User.Identity?.IsAuthenticated == true)
@@ -18,29 +22,39 @@
 
 </div>
 
-@if (TempData["TestimonialSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["TestimonialSuccess"]
-    </div>
-}
-
 @if (!Model.Any())
 {
-    <div class="alert alert-info">
-        No testimonials are available yet.
+    <div class="text-center
+        border
+        rounded
+        bg-light
+        p-5">
+
+        <h2 class="h4 mb-2">
+            No testimonials yet
+        </h2>
+
+        <p class="text-muted mb-3">
+            Approved customer testimonials will appear here.
+        </p>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-action="Create"
+               class="btn btn-primary">
+                Add Testimonial
+            </a>
+        }
+
     </div>
 }
 else
 {
-    <div class="row">
-
+    <div class="row g-4">
         @foreach (var testimonial in Model)
         {
-            <div class="col-md-6 mb-4">
-
-                <div class="card h-100">
-
+            <div class="col-12 col-md-6">
+                <article class="card h-100 shadow-sm">
                     <div class="card-body">
 
                         <p class="card-text">
@@ -49,8 +63,11 @@ else
 
                         <hr />
 
-                        <div class="d-flex justify-content-between">
-
+                        <div class="d-flex
+                            justify-content-between
+                            align-items-center
+                            flex-wrap
+                            gap-2">
                             <strong>
                                 @(string.IsNullOrWhiteSpace(
                                     testimonial.User.FullName)
@@ -66,8 +83,7 @@ else
 
                     </div>
 
-                </div>
-
+                </article>
             </div>
         }
 

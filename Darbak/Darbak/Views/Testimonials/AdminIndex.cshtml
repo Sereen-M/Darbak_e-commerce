@@ -6,17 +6,22 @@
 
 <h1 class="mb-4">Manage Testimonials</h1>
 
-@if (TempData["TestimonialSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["TestimonialSuccess"]
-    </div>
-}
-
 @if (!Model.Any())
 {
-    <div class="alert alert-info">
-        No testimonials have been submitted yet.
+    <div class="text-center
+        border
+        rounded
+        bg-light
+        p-4">
+
+        <h2 class="h5 mb-2">
+            No testimonials yet
+        </h2>
+
+        <p class="text-muted mb-0">
+            No testimonials have been submitted yet.
+        </p>
+
     </div>
 }
 else
@@ -24,14 +29,16 @@ else
     <div class="table-responsive">
 
         <table class="table table-bordered align-middle">
-
+            <caption class="visually-hidden">
+                Testimonials available for moderation
+            </caption>
             <thead>
                 <tr>
-                    <th>User</th>
-                    <th>Content</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+                    <th scope="col">User</th>
+                    <th scope="col">Content</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
 
@@ -80,43 +87,47 @@ else
 
                         <td>
 
-                            @if (testimonial.Status !=
-                                 Darbak.Models.Enums.ApprovalStatus.Approved)
-                            {
-                                <form asp-action="Approve"
-                                      method="post"
-                                      class="d-inline">
+                            <div class="d-flex
+                                flex-wrap
+                                gap-2">
 
-                                    <input type="hidden"
-                                           name="id"
-                                           value="@testimonial.Id" />
+                                @if (testimonial.Status !=
+                                     Darbak.Models.Enums.ApprovalStatus.Approved)
+                                {
+                                    <form asp-action="Approve"
+                                          method="post">
 
-                                    <button type="submit"
-                                            class="btn btn-success btn-sm">
-                                        Approve
-                                    </button>
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@testimonial.Id" />
 
-                                </form>
-                            }
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm">
+                                            Approve
+                                        </button>
 
-                            @if (testimonial.Status !=
-                                 Darbak.Models.Enums.ApprovalStatus.Rejected)
-                            {
-                                <form asp-action="Reject"
-                                      method="post"
-                                      class="d-inline">
+                                    </form>
+                                }
 
-                                    <input type="hidden"
-                                           name="id"
-                                           value="@testimonial.Id" />
+                                @if (testimonial.Status !=
+                                     Darbak.Models.Enums.ApprovalStatus.Rejected)
+                                {
+                                    <form asp-action="Reject"
+                                          method="post">
 
-                                    <button type="submit"
-                                            class="btn btn-danger btn-sm">
-                                        Reject
-                                    </button>
+                                        <input type="hidden"
+                                               name="id"
+                                               value="@testimonial.Id" />
 
-                                </form>
-                            }
+                                        <button type="submit"
+                                                class="btn btn-danger btn-sm">
+                                            Reject
+                                        </button>
+
+                                    </form>
+                                }
+
+                            </div>
 
                         </td>
 

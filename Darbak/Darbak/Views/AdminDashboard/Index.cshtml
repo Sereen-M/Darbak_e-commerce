@@ -1,217 +1,109 @@
-﻿@model Darbak.ViewModels.AdminDashboardViewModel
+﻿@using Darbak.Models.Enums
+@model Darbak.ViewModels.AdminDashboardViewModel
 
 @{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="container">
+<div class="mb-4">
 
-    <div class="mb-4">
-        <h1 class="mb-1">
-            Admin Dashboard
-        </h1>
+    <h1 class="h2 mb-1">
+        Admin Dashboard
+    </h1>
 
-        <p class="text-muted mb-0">
-            Overview of Darbak store activity.
-        </p>
-    </div>
+    <p class="text-muted mb-0">
+        Overview of Darbak store activity.
+    </p>
 
-    <!-- Main Statistics -->
-    <div class="row g-3 mb-4">
+</div>
 
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100">
+<section aria-labelledby="main-statistics-heading"
+         class="mb-4">
+
+    <h2 id="main-statistics-heading"
+        class="visually-hidden">
+        Main Statistics
+    </h2>
+
+    <div class="row g-3">
+
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm">
+
                 <div class="card-body">
 
-                    <h6 class="text-muted">
+                    <p class="text-muted mb-1">
                         Products
-                    </h6>
+                    </p>
 
-                    <h2>
+                    <p class="display-6 fw-semibold mb-1">
                         @Model.TotalProducts
-                    </h2>
+                    </p>
 
                     <small class="text-muted">
                         @Model.ActiveProducts active
                     </small>
 
                 </div>
+
             </div>
+
         </div>
 
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100">
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm">
+
                 <div class="card-body">
 
-                    <h6 class="text-muted">
+                    <p class="text-muted mb-1">
                         Categories
-                    </h6>
+                    </p>
 
-                    <h2>
+                    <p class="display-6 fw-semibold mb-0">
                         @Model.TotalCategories
-                    </h2>
+                    </p>
 
                 </div>
+
             </div>
+
         </div>
 
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100">
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm">
+
                 <div class="card-body">
 
-                    <h6 class="text-muted">
+                    <p class="text-muted mb-1">
                         Users
-                    </h6>
+                    </p>
 
-                    <h2>
+                    <p class="display-6 fw-semibold mb-0">
                         @Model.TotalUsers
-                    </h2>
+                    </p>
 
                 </div>
+
             </div>
+
         </div>
 
-        <div class="col-md-6 col-lg-3">
-            <div class="card h-100">
+        <div class="col-12 col-sm-6 col-xl-3">
+
+            <div class="card h-100 shadow-sm">
+
                 <div class="card-body">
 
-                    <h6 class="text-muted">
+                    <p class="text-muted mb-1">
                         Orders
-                    </h6>
+                    </p>
 
-                    <h2>
+                    <p class="display-6 fw-semibold mb-0">
                         @Model.TotalOrders
-                    </h2>
-
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Secondary Statistics -->
-    <div class="row g-3 mb-4">
-
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-
-                    <h6 class="text-muted">
-                        Total Order Value
-                    </h6>
-
-                    <h3>
-                        @Model.TotalOrderValue.ToString("0.00")
-                    </h3>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-
-                    <h6 class="text-muted">
-                        Pending Reviews
-                    </h6>
-
-                    <h3>
-                        @Model.PendingReviews
-                    </h3>
-
-                    <a asp-controller="Reviews"
-                       asp-action="Index"
-                       class="btn btn-sm btn-outline-primary">
-                        Manage Reviews
-                    </a>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-
-                    <h6 class="text-muted">
-                        Pending Testimonials
-                    </h6>
-
-                    <h3>
-                        @Model.PendingTestimonials
-                    </h3>
-
-                    <a asp-controller="Testimonials"
-                       asp-action="AdminIndex"
-                       class="btn btn-sm btn-outline-primary">
-                        Manage Testimonials
-                    </a>
-
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Status Statistics -->
-    <div class="row g-4 mb-4">
-
-        <div class="col-lg-6">
-
-            <div class="card h-100">
-
-                <div class="card-header">
-                    Orders by Status
-                </div>
-
-                <div class="card-body">
-
-                    @foreach (var item in Model.OrdersByStatus)
-                    {
-                        <div class="d-flex justify-content-between border-bottom py-2">
-
-                            <span>
-                                @item.Key
-                            </span>
-
-                            <strong>
-                                @item.Value
-                            </strong>
-
-                        </div>
-                    }
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-lg-6">
-
-            <div class="card h-100">
-
-                <div class="card-header">
-                    Orders by Payment Status
-                </div>
-
-                <div class="card-body">
-
-                    @foreach (var item in Model.OrdersByPaymentStatus)
-                    {
-                        <div class="d-flex justify-content-between border-bottom py-2">
-
-                            <span>
-                                @item.Key
-                            </span>
-
-                            <strong>
-                                @item.Value
-                            </strong>
-
-                        </div>
-                    }
+                    </p>
 
                 </div>
 
@@ -221,152 +113,23 @@
 
     </div>
 
-    <div class="row g-4 mb-4">
+</section>
 
-        <!-- Recent Orders -->
-        <div class="col-lg-8">
+<div class="row g-3 mb-4">
 
-            <div class="card h-100">
+    <div class="col-12 col-md-4">
 
-                <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card h-100 shadow-sm">
 
-                    <span>
-                        Recent Orders
-                    </span>
+            <div class="card-body">
 
-                    <a asp-controller="Orders"
-                       asp-action="AdminIndex"
-                       class="btn btn-sm btn-outline-primary">
-                        View All
-                    </a>
+                <p class="text-muted mb-1">
+                    Total Order Value
+                </p>
 
-                </div>
-
-                <div class="card-body">
-
-                    @if (!Model.RecentOrders.Any())
-                    {
-                        <div class="alert alert-info mb-0">
-                            No orders are available yet.
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="table-responsive">
-
-                            <table class="table table-hover align-middle">
-
-                                <thead>
-                                    <tr>
-                                        <th>Order</th>
-                                        <th>User</th>
-                                        <th>Date</th>
-                                        <th>Total</th>
-                                        <th>Status</th>
-                                        <th>Payment</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-
-                                    @foreach (var order in Model.RecentOrders)
-                                    {
-                                        <tr>
-
-                                            <td>
-                                                #@order.Id
-                                            </td>
-
-                                            <td>
-                                                @order.UserName
-                                            </td>
-
-                                            <td>
-                                                @order.OrderDate
-                                                .ToLocalTime()
-                                                .ToString("dd MMM yyyy")
-                                            </td>
-
-                                            <td>
-                                                @order.TotalAmount.ToString("0.00")
-                                            </td>
-
-                                            <td>
-                                                @order.Status
-                                            </td>
-
-                                            <td>
-                                                @order.PaymentStatus
-                                            </td>
-
-                                            <td>
-                                                <a asp-controller="Orders"
-                                                   asp-action="AdminDetails"
-                                                   asp-route-id="@order.Id"
-                                                   class="btn btn-sm btn-outline-secondary">
-                                                    Details
-                                                </a>
-                                            </td>
-
-                                        </tr>
-                                    }
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-                    }
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="col-lg-4">
-
-            <div class="card h-100">
-
-                <div class="card-header">
-                    Quick Actions
-                </div>
-
-                <div class="card-body d-grid gap-2">
-
-                    <a asp-controller="Products"
-                       asp-action="Index"
-                       class="btn btn-outline-primary">
-                        Manage Products
-                    </a>
-
-                    <a asp-controller="Categories"
-                       asp-action="Index"
-                       class="btn btn-outline-primary">
-                        Manage Categories
-                    </a>
-
-                    <a asp-controller="Orders"
-                       asp-action="AdminIndex"
-                       class="btn btn-outline-primary">
-                        Manage Orders
-                    </a>
-
-                    <a asp-controller="Reviews"
-                       asp-action="Index"
-                       class="btn btn-outline-primary">
-                        Manage Reviews
-                    </a>
-
-                    <a asp-controller="Testimonials"
-                       asp-action="AdminIndex"
-                       class="btn btn-outline-primary">
-                        Manage Testimonials
-                    </a>
-
-                </div>
+                <h2 class="h3 mb-0">
+                    @Model.TotalOrderValue.ToString("0.00")
+                </h2>
 
             </div>
 
@@ -374,75 +137,554 @@
 
     </div>
 
-    <!-- Low Stock -->
-    <div class="card mb-4">
+    <div class="col-12 col-md-4">
 
-        <div class="card-header">
-            Low Stock Products
+        <div class="card h-100 shadow-sm">
+
+            <div class="card-body">
+
+                <p class="text-muted mb-1">
+                    Pending Reviews
+                </p>
+
+                <h2 class="h3">
+                    @Model.PendingReviews
+                </h2>
+
+                <a asp-controller="Reviews"
+                   asp-action="Index"
+                   class="btn btn-sm btn-outline-primary">
+
+                    Manage Reviews
+
+                </a>
+
+            </div>
+
         </div>
 
-        <div class="card-body">
+    </div>
 
-            @if (!Model.LowStockProducts.Any())
-            {
-                <div class="alert alert-success mb-0">
-                    No active products have low stock.
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
+    <div class="col-12 col-md-4">
 
-                    <table class="table table-hover align-middle">
+        <div class="card h-100 shadow-sm">
 
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Stock</th>
-                                <th>Price</th>
-                                <th></th>
-                            </tr>
-                        </thead>
+            <div class="card-body">
 
-                        <tbody>
+                <p class="text-muted mb-1">
+                    Pending Testimonials
+                </p>
 
-                            @foreach (var product in Model.LowStockProducts)
-                            {
-                                <tr>
+                <h2 class="h3">
+                    @Model.PendingTestimonials
+                </h2>
 
-                                    <td>
-                                        @product.Name
-                                    </td>
+                <a asp-controller="Testimonials"
+                   asp-action="AdminIndex"
+                   class="btn btn-sm btn-outline-primary">
 
-                                    <td>
-                                        @product.StockQuantity
-                                    </td>
+                    Manage Testimonials
 
-                                    <td>
-                                        @product.Price.ToString("0.00")
-                                    </td>
+                </a>
 
-                                    <td>
-                                        <a asp-controller="Products"
-                                           asp-action="Edit"
-                                           asp-route-id="@product.Id"
-                                           class="btn btn-sm btn-outline-primary">
-                                            Edit
-                                        </a>
-                                    </td>
-
-                                </tr>
-                            }
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-            }
+            </div>
 
         </div>
 
     </div>
 
 </div>
+
+<div class="row g-4 mb-4">
+
+    <div class="col-12 col-lg-6">
+
+        <section class="card h-100 shadow-sm"
+                 aria-labelledby="orders-status-heading">
+
+            <div class="card-header">
+
+                <h2 id="orders-status-heading"
+                    class="h5 mb-0">
+                    Orders by Status
+                </h2>
+
+            </div>
+
+            <div class="card-body">
+
+                @if (!Model.OrdersByStatus.Any())
+                {
+                    <p class="text-muted mb-0">
+                        No order data is available.
+                    </p>
+                }
+                else
+                {
+                    @foreach (var item in Model.OrdersByStatus)
+                    {
+                        <div class="d-flex
+                            justify-content-between
+                            align-items-center
+                            border-bottom
+                            py-2">
+
+                            <span>
+                                @item.Key
+                            </span>
+
+                            <span class="badge bg-secondary">
+                                @item.Value
+                            </span>
+
+                        </div>
+                    }
+                }
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <div class="col-12 col-lg-6">
+
+        <section class="card h-100 shadow-sm"
+                 aria-labelledby="payments-status-heading">
+
+            <div class="card-header">
+
+                <h2 id="payments-status-heading"
+                    class="h5 mb-0">
+                    Orders by Payment Status
+                </h2>
+
+            </div>
+
+            <div class="card-body">
+
+                @if (!Model.OrdersByPaymentStatus.Any())
+                {
+                    <p class="text-muted mb-0">
+                        No payment data is available.
+                    </p>
+                }
+                else
+                {
+                    @foreach (var item in Model.OrdersByPaymentStatus)
+                    {
+                        <div class="d-flex
+                            justify-content-between
+                            align-items-center
+                            border-bottom
+                            py-2">
+
+                            <span>
+                                @item.Key
+                            </span>
+
+                            <span class="badge bg-secondary">
+                                @item.Value
+                            </span>
+
+                        </div>
+                    }
+                }
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+<div class="row g-4 mb-4">
+
+    <div class="col-12 col-xl-8">
+
+        <section class="card h-100 shadow-sm"
+                 aria-labelledby="recent-orders-heading">
+
+            <div class="card-header
+                d-flex
+                justify-content-between
+                align-items-center
+                flex-wrap
+                gap-2">
+
+                <h2 id="recent-orders-heading"
+                    class="h5 mb-0">
+                    Recent Orders
+                </h2>
+
+                <a asp-controller="Orders"
+                   asp-action="AdminIndex"
+                   class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
+
+            </div>
+
+            <div class="card-body">
+
+                @if (!Model.RecentOrders.Any())
+                {
+                    <div class="text-center
+                        border
+                        rounded
+                        bg-light
+                        p-4">
+
+                        <p class="text-muted mb-0">
+                            No orders are available yet.
+                        </p>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+
+                        <table class="table
+                            table-hover
+                            align-middle">
+
+                            <caption class="visually-hidden">
+                                Most recent store orders
+                            </caption>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th scope="col">
+                                        Order
+                                    </th>
+
+                                    <th scope="col">
+                                        User
+                                    </th>
+
+                                    <th scope="col">
+                                        Date
+                                    </th>
+
+                                    <th scope="col"
+                                        class="text-end">
+                                        Total
+                                    </th>
+
+                                    <th scope="col">
+                                        Status
+                                    </th>
+
+                                    <th scope="col">
+                                        Payment
+                                    </th>
+
+                                    <th scope="col"
+                                        class="text-end">
+                                        Actions
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                @foreach (var order in Model.RecentOrders)
+                                {
+                                    <tr>
+
+                                        <td class="text-nowrap">
+                                            #@order.Id
+                                        </td>
+
+                                        <td>
+                                            @order.UserName
+                                        </td>
+
+                                        <td class="text-nowrap">
+
+                                            @order.OrderDate
+                                            .ToLocalTime()
+                                            .ToString("dd MMM yyyy")
+
+                                        </td>
+
+                                        <td class="text-end text-nowrap">
+                                            @order.TotalAmount.ToString("0.00")
+                                        </td>
+
+                                        <td>
+
+                                            @if (order.Status ==
+                                                OrderStatus.Processing)
+                                            {
+                                                <span class="badge
+                                                    bg-warning
+                                                    text-dark">
+                                                    Processing
+                                                </span>
+                                            }
+                                            else if (order.Status ==
+                                                     OrderStatus.Completed)
+                                            {
+                                                <span class="badge bg-success">
+                                                    Completed
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">
+                                                    Cancelled
+                                                </span>
+                                            }
+
+                                        </td>
+
+                                        <td>
+
+                                            @if (order.PaymentStatus ==
+                                                PaymentStatus.Paid)
+                                            {
+                                                <span class="badge bg-success">
+                                                    Paid
+                                                </span>
+                                            }
+                                            else if (order.PaymentStatus ==
+                                                     PaymentStatus.Failed)
+                                            {
+                                                <span class="badge bg-danger">
+                                                    Failed
+                                                </span>
+                                            }
+                                            else if (order.PaymentStatus ==
+                                                     PaymentStatus.Refunded)
+                                            {
+                                                <span class="badge
+                                                    bg-info
+                                                    text-dark">
+                                                    Refunded
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge
+                                                    bg-secondary">
+                                                    Pending
+                                                </span>
+                                            }
+
+                                        </td>
+
+                                        <td class="text-end">
+
+                                            <a asp-controller="Orders"
+                                               asp-action="AdminDetails"
+                                               asp-route-id="@order.Id"
+                                               class="btn
+                                                btn-sm
+                                                btn-outline-primary">
+
+                                                Details
+
+                                            </a>
+
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                }
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <div class="col-12 col-xl-4">
+
+        <section class="card h-100 shadow-sm"
+                 aria-labelledby="quick-actions-heading">
+
+            <div class="card-header">
+
+                <h2 id="quick-actions-heading"
+                    class="h5 mb-0">
+                    Quick Actions
+                </h2>
+
+            </div>
+
+            <div class="card-body d-grid gap-2">
+
+                <a asp-controller="Products"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Manage Products
+                </a>
+
+                <a asp-controller="Categories"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Manage Categories
+                </a>
+
+                <a asp-controller="Orders"
+                   asp-action="AdminIndex"
+                   class="btn btn-outline-primary">
+                    Manage Orders
+                </a>
+
+                <a asp-controller="AdminUsers"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Manage Users
+                </a>
+
+                <a asp-controller="Reviews"
+                   asp-action="Index"
+                   class="btn btn-outline-primary">
+                    Manage Reviews
+                </a>
+
+                <a asp-controller="Testimonials"
+                   asp-action="AdminIndex"
+                   class="btn btn-outline-primary">
+                    Manage Testimonials
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+<section class="card shadow-sm mb-4"
+         aria-labelledby="low-stock-heading">
+
+    <div class="card-header">
+
+        <h2 id="low-stock-heading"
+            class="h5 mb-0">
+            Low Stock Products
+        </h2>
+
+    </div>
+
+    <div class="card-body">
+
+        @if (!Model.LowStockProducts.Any())
+        {
+            <div class="text-center
+                border
+                rounded
+                bg-light
+                p-4">
+
+                <p class="text-muted mb-0">
+                    No active products have low stock.
+                </p>
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table
+                    table-hover
+                    align-middle">
+
+                    <caption class="visually-hidden">
+                        Active products with low stock
+                    </caption>
+
+                    <thead>
+
+                        <tr>
+
+                            <th scope="col">
+                                Product
+                            </th>
+
+                            <th scope="col"
+                                class="text-center">
+                                Stock
+                            </th>
+
+                            <th scope="col"
+                                class="text-end">
+                                Price
+                            </th>
+
+                            <th scope="col"
+                                class="text-end">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var product in Model.LowStockProducts)
+                        {
+                            <tr>
+
+                                <td>
+                                    @product.Name
+                                </td>
+
+                                <td class="text-center">
+
+                                    <span class="badge bg-warning text-dark">
+                                        @product.StockQuantity
+                                    </span>
+
+                                </td>
+
+                                <td class="text-end text-nowrap">
+                                    @product.Price.ToString("0.00")
+                                </td>
+
+                                <td class="text-end">
+
+                                    <a asp-controller="Products"
+                                       asp-action="Edit"
+                                       asp-route-id="@product.Id"
+                                       class="btn
+                                        btn-sm
+                                        btn-outline-primary">
+
+                                        Edit
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+</section>

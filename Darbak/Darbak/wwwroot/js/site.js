@@ -2,3 +2,20 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const toastElements =
+        document.querySelectorAll(".darbak-toast");
+
+    toastElements.forEach(function (toastElement) {
+
+        const toast =
+            bootstrap.Toast.getOrCreateInstance(
+                toastElement
+            );
+
+        toast.show();
+    });
+
+});

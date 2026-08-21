@@ -3,40 +3,6 @@
 @{
     ViewData["Title"] = "Home";
 }
-@if (TempData["CartSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["CartSuccess"]
-    </div>
-}
-
-@if (TempData["CartError"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["CartError"]
-    </div>
-}
-
-@if (TempData["WishlistSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["WishlistSuccess"]
-    </div>
-}
-
-@if (TempData["WishlistInfo"] != null)
-{
-    <div class="alert alert-info">
-        @TempData["WishlistInfo"]
-    </div>
-}
-
-@if (TempData["WishlistError"] != null)
-{
-    <div class="alert alert-danger">
-        @TempData["WishlistError"]
-    </div>
-}
 
 <section class="bg-light rounded-3 p-5 mb-5 text-center">
     <div class="container">

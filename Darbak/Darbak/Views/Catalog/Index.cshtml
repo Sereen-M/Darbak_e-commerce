@@ -11,22 +11,41 @@
       class="row g-3 mb-4">
 
     <div class="col-md-4">
-        <label class="form-label">Search</label>
+
+        <label for="catalogSearch"
+               class="form-label">
+            Search
+        </label>
 
         <input type="text"
+               id="catalogSearch"
                name="search"
                value="@Model.Search"
                class="form-control"
-               placeholder="Search products..." />
+               placeholder="Search products..."
+               aria-describedby="catalogSearchHelp" />
+
+        <div id="catalogSearchHelp"
+             class="form-text">
+            Search by product or category name.
+        </div>
+
     </div>
 
     <div class="col-md-3">
-        <label class="form-label">Category</label>
 
-        <select name="categoryId"
+        <label for="catalogCategory"
+               class="form-label">
+            Category
+        </label>
+
+        <select id="catalogCategory"
+                name="categoryId"
                 class="form-select">
 
-            <option value="">All Categories</option>
+            <option value="">
+                All Categories
+            </option>
 
             @foreach (var category in Model.Categories)
             {
@@ -44,13 +63,20 @@
                     </option>
                 }
             }
+
         </select>
+
     </div>
 
     <div class="col-md-3">
-        <label class="form-label">Sort By</label>
 
-        <select name="sort"
+        <label for="catalogSort"
+               class="form-label">
+            Sort By
+        </label>
+
+        <select id="catalogSort"
+                name="sort"
                 class="form-select">
 
             <option value=""
@@ -67,69 +93,101 @@
                     selected="@(Model.Sort == "price_desc")">
                 Price: High to Low
             </option>
+
         </select>
+
     </div>
 
     <div class="col-md-2 d-flex align-items-end">
+
         <button type="submit"
                 class="btn btn-primary w-100">
             Apply
         </button>
+
     </div>
+
 </form>
 
 @if (!Model.Products.Any())
 {
-    <div class="alert alert-info">
-        No products were found.
+    <div class="text-center border rounded p-5 bg-light">
+
+        <h2 class="h4 mb-2">
+            No products found
+        </h2>
+
+        <p class="text-muted mb-3">
+            Try changing your search, category, or sorting options.
+        </p>
+
+        <a asp-action="Index"
+           class="btn btn-outline-primary">
+            Clear Filters
+        </a>
+
     </div>
 }
 else
 {
-    <div class="row">
+    <div class="row g-4">
 
         @foreach (var product in Model.Products)
         {
-            <div class="col-md-4 col-lg-3 mb-4">
+            var productTitleId =
+                $"product-title-{product.Id}";
 
-                <div class="card h-100">
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+
+                <article class="card h-100 shadow-sm"
+                         aria-labelledby="@productTitleId">
 
                     @if (!string.IsNullOrWhiteSpace(product.MainImageUrl))
                     {
                         <img src="@product.MainImageUrl"
                              class="card-img-top"
                              alt="@product.Name"
-                             style="height: 220px; object-fit: cover;" />
+                             loading="lazy"
+                             style="height: 220px;
+                        object-fit: cover;" />
                     }
                     else
                     {
-                        <div class="d-flex align-items-center justify-content-center bg-light"
-                             style="height: 220px;">
-                            <span class="text-muted">
-                                No Image
-                            </span>
+                        <div class="d-flex
+                            align-items-center
+                            justify-content-center
+                            bg-light
+                            text-muted"
+                             style="height: 220px;"
+                             aria-label="No product image available">
+
+                            No Image
+
                         </div>
                     }
 
                     <div class="card-body d-flex flex-column">
 
-                        <h5 class="card-title">
+                        <h2 id="@productTitleId"
+                            class="card-title h5">
+
                             @product.Name
-                        </h5>
+
+                        </h2>
 
                         <p class="text-muted mb-2">
                             @product.CategoryName
                         </p>
 
-                        <p class="fw-bold mb-2">
+                        <p class="fw-bold fs-5 mb-2">
                             @product.Price.ToString("0.00")
                         </p>
 
                         <div class="mb-2">
+
                             @if (product.ReviewCount > 0)
                             {
                                 <span>
-                                    Rating:
                                     @product.AverageRating.ToString("0.0")
                                     / 5
                                 </span>
@@ -144,21 +202,26 @@ else
                                     No reviews yet
                                 </span>
                             }
+
                         </div>
 
                         <div class="mb-3">
+
                             @if (product.StockQuantity > 0)
                             {
-                                <span class="badge bg-success">
+                                <span class="badge bg-success"
+                                      role="status">
                                     In Stock
                                 </span>
                             }
                             else
                             {
-                                <span class="badge bg-danger">
+                                <span class="badge bg-danger"
+                                      role="status">
                                     Out of Stock
                                 </span>
                             }
+
                         </div>
 
                         <div class="mt-auto">
@@ -166,8 +229,11 @@ else
                             <a asp-controller="Products"
                                asp-action="Details"
                                asp-route-id="@product.Id"
-                               class="btn btn-outline-primary w-100 mb-2">
-                                Details
+                               class="btn btn-outline-primary w-100 mb-2"
+                               aria-label="View details for @product.Name">
+
+                                View Details
+
                             </a>
 
                             @if (product.StockQuantity > 0)
@@ -182,10 +248,24 @@ else
                                            value="@product.Id" />
 
                                     <button type="submit"
-                                            class="btn btn-primary w-100">
+                                            class="btn btn-primary w-100"
+                                            aria-label="Add @product.Name to cart">
+
                                         Add to Cart
+
                                     </button>
+
                                 </form>
+                            }
+                            else
+                            {
+                                <button type="button"
+                                        class="btn btn-secondary w-100 mb-2"
+                                        disabled>
+
+                                    Out of Stock
+
+                                </button>
                             }
 
                             @if (User.Identity?.IsAuthenticated == true)
@@ -199,9 +279,13 @@ else
                                            value="@product.Id" />
 
                                     <button type="submit"
-                                            class="btn btn-outline-secondary w-100">
+                                            class="btn btn-outline-secondary w-100"
+                                            aria-label="Add @product.Name to wishlist">
+
                                         Add to Wishlist
+
                                     </button>
+
                                 </form>
                             }
 
@@ -209,7 +293,7 @@ else
 
                     </div>
 
-                </div>
+                </article>
 
             </div>
         }

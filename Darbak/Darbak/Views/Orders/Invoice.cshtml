@@ -1,4 +1,5 @@
-﻿@model Darbak.Models.Order
+﻿@using Darbak.Models.Enums
+@model Darbak.Models.Order
 
 @{
     ViewData["Title"] = $"Invoice #{Model.Id}";
@@ -6,154 +7,192 @@
 
 <div class="invoice-container">
 
-    <div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex
+        justify-content-between
+        align-items-start
+        flex-wrap
+        gap-3
+        mb-4">
 
         <div>
-            <h1 class="mb-1">
+
+            <h1 class="h2 mb-1">
                 Darbak
             </h1>
 
             <p class="text-muted mb-0">
                 Auto Parts & Car Accessories
             </p>
+
         </div>
 
-        <div class="text-end">
-            <h2 class="mb-1">
+        <div class="text-md-end">
+
+            <h2 class="h3 mb-2">
                 Invoice
             </h2>
 
-            <p class="mb-0">
+            <p class="mb-1">
                 <strong>Order #:</strong>
                 @Model.Id
             </p>
 
             <p class="mb-0">
                 <strong>Date:</strong>
+
                 @Model.OrderDate
                 .ToLocalTime()
                 .ToString("dd/MM/yyyy HH:mm")
             </p>
+
         </div>
 
     </div>
 
     <hr />
 
-    <div class="row mb-4">
+    <div class="row g-4 mb-4">
 
-        <div class="col-md-6 mb-3">
+        <section class="col-12 col-md-6"
+                 aria-labelledby="customer-heading">
 
-            <h5>
+            <h3 id="customer-heading"
+                class="h5">
                 Customer Information
-            </h5>
+            </h3>
 
-            <p class="mb-1">
-                <strong>Name:</strong>
+            <dl class="mb-0">
 
-                @(string.IsNullOrWhiteSpace(
-                    Model.User?.FullName)
-                    ? "Customer"
-                    : Model.User.FullName)
-            </p>
+                <dt>
+                    Name
+                </dt>
 
-            <p class="mb-1">
-                <strong>Email:</strong>
+                <dd>
+                    @(string.IsNullOrWhiteSpace(Model.User?.FullName)
+                        ? "Customer"
+                        : Model.User.FullName)
+                </dd>
 
-                @(Model.User?.Email
-                    ?? "Not available")
-            </p>
+                <dt>
+                    Email
+                </dt>
 
-            <p class="mb-1">
-                <strong>Phone:</strong>
-                @Model.PhoneNumber
-            </p>
+                <dd>
+                    @(Model.User?.Email ?? "Not available")
+                </dd>
 
-        </div>
+                <dt>
+                    Phone
+                </dt>
 
-        <div class="col-md-6 mb-3">
+                <dd class="mb-0">
+                    @Model.PhoneNumber
+                </dd>
 
-            <h5>
+            </dl>
+
+        </section>
+
+        <section class="col-12 col-md-6"
+                 aria-labelledby="invoice-shipping-heading">
+
+            <h3 id="invoice-shipping-heading"
+                class="h5">
                 Shipping Information
-            </h5>
+            </h3>
 
-            <p class="mb-1">
-                <strong>Address:</strong>
-                @Model.ShippingAddress
-            </p>
+            <dl class="mb-0">
 
-            <p class="mb-1">
-                <strong>City:</strong>
-                @Model.City
-            </p>
+                <dt>
+                    Address
+                </dt>
 
-        </div>
+                <dd>
+                    @Model.ShippingAddress
+                </dd>
+
+                <dt>
+                    City
+                </dt>
+
+                <dd class="mb-0">
+                    @Model.City
+                </dd>
+
+            </dl>
+
+        </section>
 
     </div>
 
-    <div class="row mb-4">
+    <div class="row g-3 mb-4">
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
 
-            <p>
-                <strong>Order Status:</strong>
+            <strong>
+                Order Status:
+            </strong>
 
-                @if (Model.Status ==
-                    Darbak.Models.Enums.OrderStatus.Processing)
-                {
-                    <span class="badge bg-warning text-dark">
-                        Processing
-                    </span>
-                }
-                else if (Model.Status ==
-                    Darbak.Models.Enums.OrderStatus.Completed)
-                {
-                    <span class="badge bg-success">
-                        Completed
-                    </span>
-                }
-                else
-                {
-                    <span class="badge bg-danger">
-                        Cancelled
-                    </span>
-                }
-            </p>
+            @if (Model.Status == OrderStatus.Processing)
+            {
+                <span class="badge bg-warning text-dark"
+                      role="status">
+                    Processing
+                </span>
+            }
+            else if (Model.Status == OrderStatus.Completed)
+            {
+                <span class="badge bg-success"
+                      role="status">
+                    Completed
+                </span>
+            }
+            else
+            {
+                <span class="badge bg-danger"
+                      role="status">
+                    Cancelled
+                </span>
+            }
 
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
 
-            <p>
-                <strong>Payment Status:</strong>
+            <strong>
+                Payment Status:
+            </strong>
 
-                @switch (Model.PaymentStatus)
-                {
-                    case Darbak.Models.Enums.PaymentStatus.Paid:
-                        <span class="badge bg-success">
-                            Paid
-                        </span>
-                        break;
+            @switch (Model.PaymentStatus)
+            {
+                case PaymentStatus.Paid:
+                    <span class="badge bg-success"
+                          role="status">
+                        Paid
+                    </span>
+                    break;
 
-                    case Darbak.Models.Enums.PaymentStatus.Failed:
-                        <span class="badge bg-danger">
-                            Failed
-                        </span>
-                        break;
+                case PaymentStatus.Failed:
+                    <span class="badge bg-danger"
+                          role="status">
+                        Failed
+                    </span>
+                    break;
 
-                    case Darbak.Models.Enums.PaymentStatus.Refunded:
-                        <span class="badge bg-info text-dark">
-                            Refunded
-                        </span>
-                        break;
+                case PaymentStatus.Refunded:
+                    <span class="badge bg-info text-dark"
+                          role="status">
+                        Refunded
+                    </span>
+                    break;
 
-                    default:
-                        <span class="badge bg-warning text-dark">
-                            Pending
-                        </span>
-                        break;
-                }
-            </p>
+                default:
+                    <span class="badge bg-warning text-dark"
+                          role="status">
+                        Pending
+                    </span>
+                    break;
+            }
 
         </div>
 
@@ -161,26 +200,37 @@
 
     <div class="table-responsive">
 
-        <table class="table table-bordered align-middle">
+        <table class="table
+            table-bordered
+            align-middle">
+
+            <caption class="visually-hidden">
+                Invoice items for order @Model.Id
+            </caption>
 
             <thead class="table-light">
 
                 <tr>
-                    <th>
+
+                    <th scope="col">
                         Product
                     </th>
 
-                    <th class="text-end">
+                    <th scope="col"
+                        class="text-end">
                         Unit Price
                     </th>
 
-                    <th class="text-center">
+                    <th scope="col"
+                        class="text-center">
                         Quantity
                     </th>
 
-                    <th class="text-end">
+                    <th scope="col"
+                        class="text-end">
                         Line Total
                     </th>
+
                 </tr>
 
             </thead>
@@ -195,7 +245,7 @@
                             @item.ProductName
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
                             @item.UnitPrice.ToString("0.00")
                         </td>
 
@@ -203,9 +253,8 @@
                             @item.Quantity
                         </td>
 
-                        <td class="text-end">
-                            @((item.UnitPrice *
-                               item.Quantity)
+                        <td class="text-end text-nowrap">
+                            @((item.UnitPrice * item.Quantity)
                                 .ToString("0.00"))
                         </td>
 
@@ -217,14 +266,17 @@
             <tfoot>
 
                 <tr>
+
                     <th colspan="3"
+                        scope="row"
                         class="text-end">
-                        Total
+                        Grand Total
                     </th>
 
-                    <th class="text-end">
+                    <th class="text-end text-nowrap">
                         @Model.TotalAmount.ToString("0.00")
                     </th>
+
                 </tr>
 
             </tfoot>
@@ -233,7 +285,11 @@
 
     </div>
 
-    <div class="d-flex gap-2 mt-4 no-print">
+    <div class="d-grid
+        gap-2
+        d-sm-flex
+        mt-4
+        no-print">
 
         <button type="button"
                 class="btn btn-primary"
@@ -245,7 +301,7 @@
         {
             <a asp-action="AdminDetails"
                asp-route-id="@Model.Id"
-               class="btn btn-secondary">
+               class="btn btn-outline-secondary">
                 Back to Order
             </a>
         }
@@ -253,7 +309,7 @@
         {
             <a asp-action="Details"
                asp-route-id="@Model.Id"
-               class="btn btn-secondary">
+               class="btn btn-outline-secondary">
                 Back to Order
             </a>
         }
@@ -263,18 +319,25 @@
 </div>
 
 <style>
-
     @@media print {
 
         header,
         footer,
         nav,
-        .no-print {
+        .no-print,
+        .toast-container,
+        .skip-link {
             display: none !important;
         }
 
         body {
             background: white !important;
+        }
+
+        main.container {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
         }
 
         .invoice-container {
@@ -287,5 +350,4 @@
             width: 100%;
         }
     }
-
 </style>

@@ -1,152 +1,236 @@
-﻿@model Darbak.Models.Order
+﻿@using Darbak.Models.Enums
+@model Darbak.Models.Order
 
 @{
-    ViewData["Title"] = "Order Details";
+    ViewData["Title"] = $"Order #{Model.Id}";
 }
 
-@if (TempData["OrderSuccess"] != null)
-{
-    <div class="alert alert-success">
-        @TempData["OrderSuccess"]
-    </div>
-}
+<div class="d-flex
+    justify-content-between
+    align-items-start
+    flex-wrap
+    gap-3
+    mb-4">
 
-<h1>
-    Order #@Model.Id
-</h1>
+    <div>
 
-<div class="card mb-4">
+        <h1 class="h2 mb-1">
+            Order #@Model.Id
+        </h1>
 
-    <div class="card-body">
-
-        <p>
-            <strong>Order Date:</strong>
-
+        <p class="text-muted mb-0">
             @Model.OrderDate
             .ToLocalTime()
             .ToString("dd/MM/yyyy HH:mm")
         </p>
 
-        <p>
-            <strong>Status:</strong>
+    </div>
 
-            @if (Model.Status ==
-                Darbak.Models.Enums.OrderStatus.Processing)
-            {
-                <span class="badge bg-warning text-dark">
-                    Processing
+    <div class="d-flex gap-2 flex-wrap">
+
+        @if (Model.Status == OrderStatus.Processing)
+        {
+            <span class="badge bg-warning text-dark"
+                  role="status">
+                Processing
+            </span>
+        }
+        else if (Model.Status == OrderStatus.Completed)
+        {
+            <span class="badge bg-success"
+                  role="status">
+                Completed
+            </span>
+        }
+        else
+        {
+            <span class="badge bg-danger"
+                  role="status">
+                Cancelled
+            </span>
+        }
+
+        @switch (Model.PaymentStatus)
+        {
+            case PaymentStatus.Paid:
+                <span class="badge bg-success"
+                      role="status">
+                    Paid
                 </span>
-            }
-            else if (Model.Status ==
-                Darbak.Models.Enums.OrderStatus.Completed)
-            {
-                <span class="badge bg-success">
-                    Completed
+                break;
+
+            case PaymentStatus.Failed:
+                <span class="badge bg-danger"
+                      role="status">
+                    Payment Failed
                 </span>
-            }
-            else
-            {
-                <span class="badge bg-danger">
-                    Cancelled
+                break;
+
+            case PaymentStatus.Refunded:
+                <span class="badge bg-info text-dark"
+                      role="status">
+                    Refunded
                 </span>
-            }
-        </p>
+                break;
 
-        <p>
-            <strong>Payment Status:</strong>
-            @Model.PaymentStatus
-        </p>
-
-        <hr />
-
-        <p>
-            <strong>Shipping Address:</strong>
-            @Model.ShippingAddress
-        </p>
-
-        <p>
-            <strong>City:</strong>
-            @Model.City
-        </p>
-
-        <p>
-            <strong>Phone:</strong>
-            @Model.PhoneNumber
-        </p>
+            default:
+                <span class="badge bg-secondary"
+                      role="status">
+                    Payment Pending
+                </span>
+                break;
+        }
 
     </div>
 
 </div>
 
-<h4>
-    Products
-</h4>
+<section class="card shadow-sm mb-4"
+         aria-labelledby="shipping-details-heading">
 
-<div class="table-responsive">
+    <div class="card-header">
 
-    <table class="table table-bordered">
+        <h2 id="shipping-details-heading"
+            class="h5 mb-0">
+            Shipping Information
+        </h2>
 
-        <thead>
+    </div>
 
-            <tr>
-                <th>
-                    Product
-                </th>
+    <div class="card-body">
 
-                <th>
-                    Unit Price
-                </th>
+        <dl class="row mb-0">
 
-                <th>
-                    Quantity
-                </th>
+            <dt class="col-sm-3">
+                Address
+            </dt>
 
-                <th>
-                    Total
-                </th>
-            </tr>
+            <dd class="col-sm-9">
+                @Model.ShippingAddress
+            </dd>
 
-        </thead>
+            <dt class="col-sm-3">
+                City
+            </dt>
 
-        <tbody>
+            <dd class="col-sm-9">
+                @Model.City
+            </dd>
 
-            @foreach (var item in Model.OrderItems)
-            {
+            <dt class="col-sm-3">
+                Phone
+            </dt>
+
+            <dd class="col-sm-9 mb-0">
+                @Model.PhoneNumber
+            </dd>
+
+        </dl>
+
+    </div>
+
+</section>
+
+<section aria-labelledby="order-products-heading">
+
+    <h2 id="order-products-heading"
+        class="h4 mb-3">
+        Products
+    </h2>
+
+    <div class="table-responsive">
+
+        <table class="table
+            table-bordered
+            align-middle">
+
+            <caption class="visually-hidden">
+                Products included in order @Model.Id
+            </caption>
+
+            <thead class="table-light">
+
                 <tr>
 
-                    <td>
-                        @item.ProductName
-                    </td>
+                    <th scope="col">
+                        Product
+                    </th>
 
-                    <td>
-                        @item.UnitPrice.ToString("0.00")
-                    </td>
+                    <th scope="col"
+                        class="text-end">
+                        Unit Price
+                    </th>
 
-                    <td>
-                        @item.Quantity
-                    </td>
+                    <th scope="col"
+                        class="text-center">
+                        Quantity
+                    </th>
 
-                    <td>
-                        @((item.UnitPrice *
-                           item.Quantity)
-                            .ToString("0.00"))
-                    </td>
+                    <th scope="col"
+                        class="text-end">
+                        Total
+                    </th>
 
                 </tr>
-            }
 
-        </tbody>
+            </thead>
 
-    </table>
+            <tbody>
 
-</div>
+                @foreach (var item in Model.OrderItems)
+                {
+                    <tr>
 
-<h4 class="mb-4">
-    Total:
-    @Model.TotalAmount.ToString("0.00")
-</h4>
+                        <td>
+                            @item.ProductName
+                        </td>
 
-<div class="d-flex gap-2">
+                        <td class="text-end text-nowrap">
+                            @item.UnitPrice.ToString("0.00")
+                        </td>
+
+                        <td class="text-center">
+                            @item.Quantity
+                        </td>
+
+                        <td class="text-end text-nowrap">
+                            @((item.UnitPrice * item.Quantity)
+                                .ToString("0.00"))
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+            <tfoot>
+
+                <tr>
+
+                    <th colspan="3"
+                        scope="row"
+                        class="text-end">
+                        Order Total
+                    </th>
+
+                    <th class="text-end text-nowrap">
+                        @Model.TotalAmount.ToString("0.00")
+                    </th>
+
+                </tr>
+
+            </tfoot>
+
+        </table>
+
+    </div>
+
+</section>
+
+<div class="d-grid
+    gap-2
+    d-sm-flex
+    mt-4">
 
     <a asp-action="Invoice"
        asp-route-id="@Model.Id"
@@ -155,7 +239,7 @@
     </a>
 
     <a asp-action="Index"
-       class="btn btn-secondary">
+       class="btn btn-outline-secondary">
         Back to My Orders
     </a>
 
